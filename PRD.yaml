@@ -1,6 +1,6 @@
 tasks:
   - title: Create 01_DCVS_Background.md
-    completed: false
+    completed: true
     description: >
       Create learn/01_DCVS_Background.md.
 
