@@ -2,53 +2,46 @@
 
 ## 前置阅读
 
-- 建议先读 `03_Exploration_vs_Exploitation.md`，先把“探索”和“利用”的拉扯感建立起来。
-- 如果你还没读前文，也没关系，这一篇会从零讲起，并把 DCVS 背景一起带上。
-- 读这篇时，脑子里一直记住一个工程事实：我们面对的是 `6×4×4×2 = 192` 个离散动作，
-  GPU 频率大致落在 `282-710 MHz`，目标 FPS 常常是 `59-60`，功耗观测范围常见为
-  `0-8000 mW`。
+- 建议先读 `03_Exploration_vs_Exploitation.md`，先把“探索”和“利用”为什么会打架这件事想明白。
+- 这篇会从赌场老虎机一路讲到 GPU DCVS，所以就算你是第一次接触强化学习，也能直接跟上。
+- 读的时候请一直记住这个工程背景：这里不是 2 个动作、4 个动作，而是 `6×4×4×2 = 192` 个离散动作，
+  GPU 频率大致落在 `282-710 MHz`，目标 FPS 常常卡在 `59-60`，功耗观测范围常见为 `0-8000 mW`。
 
-## 先抓住直觉：赌场那一排老虎机，像不像 192 个 DCVS 参数组合
+## 1. 先把画面感立住：赌场老虎机为什么像 DCVS 的 192 个动作
 
-想象你走进赌场，面前排着很多台老虎机。每台机器的中奖概率都不一样，但你一开始并不知道。
+想象你走进赌场，面前摆着一整排老虎机。每一台都可能赢钱，但你不知道哪台最值。
+你能做的只有一件事：拉一下，记住结果，再决定下一次拉谁。
 
-- 你只有有限的试玩次数；
-- 你想在总次数固定的前提下，尽量多赚钱；
-- 但你又不能把所有次数都浪费在“看起来很烂”的机器上。
+把这个画面搬到 GPU DCVS 上，几乎是一模一样的：
 
-这就是**多臂老虎机（Multi-Armed Bandit）**的核心问题。
+- 拉一次摇杆，等价于给下一个控制窗口选一个 `action_id`；
+- 这一轮拿到的输赢，等价于这一小段时间的奖励；
+- 奖励高，说明这个动作在“稳帧 + 省电”这件事上更划算；
+- 奖励低，说明它可能掉帧，也可能费电，或者两头都不占。
 
-把它搬到 GPU DCVS 调参里，画风几乎一模一样：
-
-- 拉一次老虎机摇杆，等价于“给下一个控制窗口选一个 `action_id`”；
-- 中奖金额，等价于“这一小段时间拿到的奖励”；
-- 奖励高，说明这个动作在当前目标下更划算；
-- 奖励低，说明它要么费电，要么掉帧，要么两头都不占。
-
-所以你可以把 192 个 DCVS 参数组合，想成 192 台可选的老虎机。
-Bandit 不是完整强化学习里最强的那一类，但它是最容易上手、最容易在线部署，
-也最适合拿来建立直觉的第一站。
+所以，**多臂老虎机（Multi-Armed Bandit）**可以先粗暴地理解成：
+“面对很多动作，但每次只能试一个；试完以后立刻看回报；边试边学。”
 
 ### ① 直觉类比
 
-你可以把自己想成一个值班调参工程师。系统每隔几秒就问你一次：
+把自己想成一个值班调参工程师。系统每隔一个控制窗口就来问你一次：
 
-- 继续用上次那个稳妥动作？
+- 继续用刚才那个稳妥动作？
 - 还是试试另一个可能更省电的动作？
 
-如果你永远只选当前最稳的动作，你会很安全，但可能永远学不到更好的配置。
-如果你疯狂乱试，你学得很快，但玩家很可能先被你试到掉帧。
+如果你从头到尾只敢选当前最稳的动作，你会很保守，但可能永远学不到更好的配置。
+如果你每次都大胆乱试，你学得快，但玩家可能先被你试到卡顿。
+
+Bandit 研究的，就是这种“边挣钱边试错”的平衡术。
 
 ### ② 正式定义
 
-在最基础的 Bandit 设定里：
+在最基础的 Bandit 设定里，我们先不管复杂状态，只关心“选哪个动作”和“立刻拿到多少奖励”。
 
-- 一共有 $K$ 个动作，也叫 $K$ 个“臂”；
-- 第 $t$ 轮，你选一个动作 $a_t$；
-- 系统返回一个即时奖励 $r_t$；
-- 每个动作背后都有一个你看不见的真实平均奖励 $\mu_a$。
-
-这里的 $\mu_a$，你可以先把它理解成“动作 $a$ 长期平均能拿多少分”。
+- 第 $t$ 轮选择的动作记成 $a_t$；
+- 这一轮立刻拿到的分数，叫**即时奖励（Immediate Reward）**，记成 $r_t$；
+- 前 $T$ 轮加起来的分数，叫**总奖励（Total Reward）**；
+- 如果你没选到当时最值的动作，就会产生**累积遗憾（Cumulative Regret）**。
 
 $$
 a_t \in \{1,2,\dots,K\}
@@ -58,50 +51,53 @@ $$
 \mu_a = \mathbb{E}[r \mid a]
 $$
 
-Bandit 的目标很简单：在有限轮数里，让总奖励尽量大。
-
-如果把前 $T$ 轮总奖励记成 $G_T$，那就是：
+$$
+r_t = r(a_t)
+$$
 
 $$
 G_T = \sum_{t=1}^{T} r_t
 $$
 
-### ③ 公式推导 + TikZ 图
+$$
+R_T = \sum_{t=1}^{T} (\mu^* - \mu_{a_t}), \quad \mu^* = \max_a \mu_a
+$$
 
-这张图展示了什么：下面这张流程图把“选动作 → 运行窗口 → 看结果 → 更新统计”的
-最小闭环画出来了。它就是 plain bandit 的日常工作流。
+上面这几行别被符号吓到。它们其实只是在说：
 
-```latex
-\begin{tikzpicture}[>=Stealth, node distance=12mm and 10mm]
-  \tikzstyle{inputnode}=[draw, rounded corners, fill=blue!15,
-    minimum width=34mm, minimum height=9mm, align=center]
-  \tikzstyle{processnode}=[draw, rounded corners, fill=orange!18,
-    minimum width=36mm, minimum height=9mm, align=center]
-  \tikzstyle{outputnode}=[draw, rounded corners, fill=green!18,
-    minimum width=36mm, minimum height=9mm, align=center]
+- 每个动作背后都有一个你看不见的长期平均水平 $\mu_a$；
+- 你每次拿到的 $r_t$ 会有波动；
+- 你希望总奖励越大越好，同时遗憾越小越好。
 
-  \node[inputnode] (context) {输入\\当前窗口信息\\GPU 负载、温度、FPS};
-  \node[processnode, below=of context] (pick) {处理\\从 192 个动作里\\选 1 个 action\_id};
-  \node[processnode, below=of pick] (run) {处理\\运行一个控制窗口\\例如 5 秒};
-  \node[outputnode, below=of run] (observe) {输出\\观察 FPS、功耗、稳定性};
-  \node[processnode, below=of observe] (reward) {处理\\算奖励并更新\\每个动作统计};
-  \node[outputnode, below=of reward] (next) {输出\\进入下一轮\\继续选动作};
+### ③ 公式推导 + Mermaid 图
 
-  \draw[->, thick] (context) -- node[right] {当前状态} (pick);
-  \draw[->, thick] (pick) -- node[right] {执行动作} (run);
-  \draw[->, thick] (run) -- node[right] {收集结果} (observe);
-  \draw[->, thick] (observe) -- node[right] {回写奖励} (reward);
-  \draw[->, thick] (reward) -- node[right] {更新后再决策} (next);
-\end{tikzpicture}
+这张图展示了什么：下面这张图把 plain bandit 的最小闭环画出来了。
+你会看到它只做 5 件事：选动作、跑窗口、记结果、更新统计、继续下一轮。
+
+```mermaid
+flowchart TD
+    A[输入：第 t 轮开始] --> B[从 192 个动作里挑一个 action_id]
+    B --> C[运行一个 DCVS 控制窗口]
+    C --> D[记录 FPS 功耗 奖励]
+    D --> E[更新该动作的统计量]
+    E --> F[进入第 t+1 轮]
+
+    classDef input fill:#E8F4FD,stroke:#1D70B8,color:#111;
+    classDef process fill:#FFF4CC,stroke:#B98900,color:#111;
+    classDef output fill:#E8F8EC,stroke:#2E8B57,color:#111;
+
+    class A input;
+    class B,C,E process;
+    class D,F output;
 ```
 
-图里的关键路径/要点：Bandit 只盯“这次选什么，立刻拿到什么回报”。
-它不像完整 MDP 那样显式建模长时序状态转移，所以它简单，也因此有局限。
+图里的关键路径/要点：plain bandit 只盯“这次选什么，立刻拿到什么”。
+它没有显式建模长时序状态转移，所以实现简单、部署轻，但也会丢掉一部分历史信息。
 
 ### ④ DCVS 实际数值计算示例
 
-先用一个非常朴素、但足够好懂的奖励函数来算一遍。假设一个控制窗口结束后，
-我们按下面的方法给这个动作打分：
+先用一个很朴素、但足够好懂的**奖励函数（Reward Function）**算一遍。
+假设一个控制窗口结束后，我们用下面这套规则打分：
 
 $$
 r_{\text{base}} = \frac{\min(\text{FPS}, 60)}{60} - 0.25 \cdot \frac{\text{功耗}}{8000}
@@ -115,22 +111,20 @@ r_{\text{base}} - 0.15, & \text{如果 FPS} < 59
 \end{cases}
 $$
 
-这里的意思很直白：
+这套规则的意思很直接：
 
 - FPS 越接近 `60` 越好；
 - 功耗越低越好；
-- 但如果 FPS 跌破 `59`，就额外扣一笔大分，因为玩家会明显感觉到卡顿。
+- 但只要掉到 `59` 以下，就额外扣一笔分，因为玩家已经会明显感觉到卡。
 
-现在假设我们手上先看 4 个候选动作：
+下面先看 4 个候选动作：
 
-| action_id | GPU 频率 | 观测 FPS | 功耗 | 解释 |
+| action_id | GPU 频率 | 观测 FPS | 功耗 | 直觉解释 |
 |---|---:|---:|---:|---|
 | action_id 12 | `500 MHz` | `60` | `5000 mW` | 很稳，但偏费电 |
-| action_id 72 | `545 MHz` | `60` | `4200 mW` | 稳定且比 12 更省 |
-| action_id 109 | `430 MHz` | `59` | `3600 mW` | 勉强达标，但更省电 |
-| action_id 155 | `355 MHz` | `58` | `3100 mW` | 很省电，但掉帧 |
-
-下面一步一步算。
+| action_id 72 | `545 MHz` | `60` | `4200 mW` | 稳定，而且更省 |
+| action_id 109 | `430 MHz` | `59` | `3600 mW` | 勉强达标，省电更明显 |
+| action_id 155 | `355 MHz` | `58` | `3100 mW` | 最省电，但已经掉帧 |
 
 **action_id 12：**
 
@@ -194,806 +188,505 @@ $$
 r_{155} = 0.8697917 - 0.15 = 0.7197917
 $$
 
-这一轮里，4 个动作的结果是：
+这一轮按奖励从高到低排，就是：
 
-- action_id 109：$0.8708333$
-- action_id 72：$0.86875$
-- action_id 12：$0.84375$
-- action_id 155：$0.7197917$
+1. action_id 109：$0.8708333$
+2. action_id 72：$0.86875$
+3. action_id 12：$0.84375$
+4. action_id 155：$0.7197917$
 
-你会发现：Bandit 真正在学的，不是“绝对真理”，而是“谁在当前目标函数下更值钱”。
+这个例子特别重要，因为它说明了一件事：Bandit 学的不是“绝对最强动作”，
+而是“在当前奖励定义下最划算的动作”。
 
-## 1. 累积遗憾：不是看你赚了多少，而是看你错过了多少
-
-### ① 直觉类比
-
-假设赌场里最赚钱的那台老虎机，你事后才知道原来是 3 号机。
-那你前面去拉 1 号机、2 号机、4 号机的那些回合，
-就相当于“错过了本来可以拿到的更高回报”。
-
-这部分“本来能赚到，但没赚到”的差额，就是遗憾（Regret）。
-
-### ② 正式定义
-
-记最优动作的真实平均奖励为：
-
-$$
-\mu^* = \max_a \mu_a
-$$
-
-那么前 $T$ 轮的**累积遗憾（Cumulative Regret）**定义为：
-
-$$
-R_T = \sum_{t=1}^{T} (\mu^* - \mu_{a_t})
-$$
-
-它的意思是：每一轮都把“这轮本来能拿到的最好平均奖励”
-和“你实际选中动作的平均奖励”做差，再把这些差额全部累加起来。
-
-### ③ 公式推导 + TikZ 图
-
-这张图展示了什么：下面这张图把“最佳动作”和“本轮所选动作”的差额，
-如何一轮一轮累加成累积遗憾，画成了一条流水线。
-
-```latex
-\begin{tikzpicture}[>=Stealth, node distance=12mm and 10mm]
-  \tikzstyle{inputnode}=[draw, rounded corners, fill=blue!15,
-    minimum width=32mm, minimum height=9mm, align=center]
-  \tikzstyle{processnode}=[draw, rounded corners, fill=orange!18,
-    minimum width=34mm, minimum height=9mm, align=center]
-  \tikzstyle{outputnode}=[draw, rounded corners, fill=green!18,
-    minimum width=34mm, minimum height=9mm, align=center]
-
-  \node[inputnode] (best) {输入\\最优动作均值\\$\mu^*$};
-  \node[inputnode, right=25mm of best] (chosen) {输入\\本轮所选动作均值\\$\mu_{a_t}$};
-  \node[processnode, below=of best, xshift=12mm] (gap) {处理\\先算单轮差额\\$\mu^* - \mu_{a_t}$};
-  \node[outputnode, below=of gap] (sum) {输出\\把每轮差额累加\\得到 $R_T$};
-
-  \draw[->, thick] (best) -- node[left] {最佳参考} (gap);
-  \draw[->, thick] (chosen) -- node[right] {实际选择} (gap);
-  \draw[->, thick] (gap) -- node[right] {逐轮累加} (sum);
-\end{tikzpicture}
-```
-
-图里的关键路径/要点：遗憾不是说“你这轮一定失败了”，
-而是说“你这轮距离最好答案还差了多少”。
-
-### ④ DCVS 实际数值计算示例
-
-沿用上面 4 个动作的均值，当前最优动作是 `action_id 109`，
-所以：
-
-$$
-\mu^* = 0.8708333
-$$
-
-假设前 5 轮你实际选动作的顺序是：
-
-- 第 1 轮：action_id 12
-- 第 2 轮：action_id 72
-- 第 3 轮：action_id 155
-- 第 4 轮：action_id 109
-- 第 5 轮：action_id 72
-
-那每一轮的遗憾分别是：
-
-$$
-\text{第 1 轮遗憾} = 0.8708333 - 0.84375 = 0.0270833
-$$
-
-$$
-\text{第 2 轮遗憾} = 0.8708333 - 0.86875 = 0.0020833
-$$
-
-$$
-\text{第 3 轮遗憾} = 0.8708333 - 0.7197917 = 0.1510416
-$$
-
-$$
-\text{第 4 轮遗憾} = 0.8708333 - 0.8708333 = 0
-$$
-
-$$
-\text{第 5 轮遗憾} = 0.8708333 - 0.86875 = 0.0020833
-$$
-
-$$
-R_5 = 0.0270833 + 0.0020833 + 0.1510416 + 0 + 0.0020833 = 0.1822915
-$$
-
-这个数越小，说明你越快摸到了好动作。
-所以很多 Bandit 算法表面上在“选动作”，本质上都在想办法把遗憾压低。
-
-## 2. 为什么“多拉几次”会更准：样本均值与大数定律
+## 2. 样本均值为什么有用：少看一轮会被骗，多看几轮会更稳
 
 ### ① 直觉类比
 
-如果一家餐馆你只吃过 1 次，你很难说它到底稳不稳。
-但如果你吃了 50 次，而且大部分时候都不错，
-你对它的判断就会越来越有底。
+想象你在食堂试 4 个窗口的番茄鸡蛋面。第一口可能咸了，第二口可能刚好，第三口又有点淡。
+单独看某一口，你很容易误判；多吃几口以后，你才会慢慢知道哪个窗口平均最靠谱。
 
-Bandit 里对每个动作的认识，也是在靠“试的次数”慢慢变准。
+Bandit 里也是一样。某个动作这一次拿高分，不代表它真的长期最好。
+所以我们通常会先记它的平均表现，而不是只看某一次的好运气。
 
 ### ② 正式定义
 
-动作 $a$ 被试了 $N_a$ 次之后，它的**样本均值**通常写成：
+一个动作被试了 $N_a$ 次之后，它的**样本均值（Sample Mean）**记成：
 
 $$
-\hat{\mu}_a = \frac{1}{N_a} \sum_{i=1}^{N_a} r_i(a)
+\hat{\mu}_a = \frac{1}{N_a} \sum_{i=1}^{N_a} r_{a,i}
 $$
 
-这里：
+这里的意思非常朴素：
 
-- $N_a$ 是这个动作被选中的次数；
-- $r_i(a)$ 是第 $i$ 次选这个动作时观察到的奖励；
-- $\hat{\mu}_a$ 是我们当前对它的“经验平均分”。
+- 先把这个动作历史上拿到的奖励全部加起来；
+- 再除以它被试过的次数；
+- 得到一个“目前看来它平均大概能拿多少分”的估计值。
 
-> **补充知识：样本均值和大数定律**
+如果一个动作被试得越来越多，样本均值通常会越来越接近真实平均奖励。
+这背后最常见的支撑直觉，就是**大数定律（Law of Large Numbers）**。
+
+> **补充知识：什么是期望和大数定律？**
 >
-> 样本均值，你可以直接理解成“把已经看到的分数全部加起来，再除以次数”。
-> 它一点都不神秘，本质上就是求平均数。
+> 期望你可以先理解成“长期平均值”。比如掷骰子时，某一把掷出 6 点不奇怪，掷出 1 点也不奇怪，
+> 但掷很多很多次以后，平均点数会稳定在一个固定水平附近。
 >
-> 大数定律（Law of Large Numbers）的意思是：如果同一件事反复做很多次，
-> 那它的平均结果会越来越接近真实期望。
-> 在 Bandit 里就是：某个动作被试得越多，$\hat{\mu}_a$ 通常就越接近它真正的 $\mu_a$。
-> 这就是为什么“没试够的动作”天然带着不确定性。
+> 大数定律说的就是这个意思：单次结果会抖，但样本数量够多时，平均值会越来越稳。
+> 所以 Bandit 喜欢记样本均值，因为它比“只看最近一轮”靠谱得多。
 
-### ③ 公式推导 + TikZ 图
+### ③ 公式推导 + Mermaid 图
 
-这张图展示了什么：下面这张图把“奖励序列 → 求和 → 除以次数 → 得到经验均值”
-的步骤拆开了。
+这张图展示了什么：下面这张图把“奖励序列怎么一步步变成样本均值”画出来了。
+它不是在做神秘数学，只是在做“累加再平均”。
 
-```latex
-\begin{tikzpicture}[>=Stealth, node distance=12mm and 10mm]
-  \tikzstyle{inputnode}=[draw, rounded corners, fill=blue!15,
-    minimum width=34mm, minimum height=9mm, align=center]
-  \tikzstyle{processnode}=[draw, rounded corners, fill=orange!18,
-    minimum width=34mm, minimum height=9mm, align=center]
-  \tikzstyle{outputnode}=[draw, rounded corners, fill=green!18,
-    minimum width=34mm, minimum height=9mm, align=center]
+```mermaid
+graph TD
+    A[输入：某个动作的奖励序列] --> B[把奖励逐个累加]
+    B --> C[得到累计和]
+    C --> D[除以试验次数 N]
+    D --> E[得到样本均值]
+    E --> F[试验次数变多时更稳定]
 
-  \node[inputnode] (seq) {输入\\奖励序列\\$0.87, 0.86, 0.88, 0.87$};
-  \node[processnode, below=of seq] (sum) {处理\\先求和\\$0.87+0.86+0.88+0.87$};
-  \node[processnode, below=of sum] (div) {处理\\再除以次数\\$\div 4$};
-  \node[outputnode, below=of div] (mean) {输出\\样本均值\\$\hat{\mu}=0.87$};
+    classDef input fill:#E8F4FD,stroke:#1D70B8,color:#111;
+    classDef process fill:#FFF4CC,stroke:#B98900,color:#111;
+    classDef output fill:#E8F8EC,stroke:#2E8B57,color:#111;
 
-  \draw[->, thick] (seq) -- node[right] {收集数据} (sum);
-  \draw[->, thick] (sum) -- node[right] {平均化} (div);
-  \draw[->, thick] (div) -- node[right] {得到估计} (mean);
-\end{tikzpicture}
+    class A input;
+    class B,C,D process;
+    class E,F output;
 ```
 
-图里的关键路径/要点：Bandit 最常维护的统计量，就是“次数”和“均值”。
-后面 UCB、Thompson Sampling，都是在这两个量上继续加工。
+图里的关键路径/要点：关键不是“平均”这两个字本身，
+而是“平均值会随着样本数增大逐渐稳定下来”。这就是后面 UCB、Thompson Sampling 的起点。
 
 ### ④ DCVS 实际数值计算示例
 
-假设 `action_id 72` 在过去 4 次窗口里的奖励依次是：
-
-- 第 1 次：$0.87$
-- 第 2 次：$0.86$
-- 第 3 次：$0.88$
-- 第 4 次：$0.87$
-
-那它的样本均值就是：
+假设 action_id 72 在 4 个窗口里先后拿到了下面这串奖励：
 
 $$
-\hat{\mu}_{72} = \frac{0.87 + 0.86 + 0.88 + 0.87}{4}
+[0.82,\ 0.88,\ 0.87,\ 0.91]
 $$
 
-先算分子：
+下面按最笨、但最不容易出错的办法一步一步算：
+
+- 第 1 次后，累计和是 $0.82$，样本均值也是 $0.82$；
+- 第 2 次后，累计和变成 $0.82 + 0.88 = 1.70$；
+- 第 2 次后的均值是 $1.70 \div 2 = 0.85$；
+- 第 3 次后，累计和变成 $1.70 + 0.87 = 2.57$；
+- 第 3 次后的均值是 $2.57 \div 3 = 0.8567$；
+- 第 4 次后，累计和变成 $2.57 + 0.91 = 3.48$；
+- 第 4 次后的均值是 $3.48 \div 4 = 0.87$。
+
+所以现在我们对 action_id 72 的估计就是：
 
 $$
-0.87 + 0.86 + 0.88 + 0.87 = 3.48
+\hat{\mu}_{72} = 0.87
 $$
 
-再除以 4：
+这还不代表它“永远最好”，但至少说明：
+在已经观测到的数据里，它看起来确实挺能打。
 
-$$
-\hat{\mu}_{72} = 3.48 \div 4 = 0.87
-$$
-
-再看 `action_id 109`，如果你目前只观测过两次，奖励是 $0.89$ 和 $0.86$，
-那么：
-
-$$
-\hat{\mu}_{109} = \frac{0.89 + 0.86}{2} = \frac{1.75}{2} = 0.875
-$$
-
-表面上看，`action_id 109` 的均值比 `action_id 72` 高。
-但它只试了 2 次，明显还没有 72 那么“心里有底”。
-UCB 正是冲着这个问题来的。
-
-## 3. 置信上界（Upper Confidence Bound, UCB）：均值不够，还要加探索奖金
+## 3. UCB 在干什么：给“还没试够”的动作一个探索奖金
 
 ### ① 直觉类比
 
-想象你在逛夜市，已经反复吃过的摊位，口味你很清楚；
-只吃过 1 次的新摊位，就算那次表现一般，你也不会马上把它彻底判死刑。
+假设你常去 4 家面馆。
 
-UCB 的想法就是：
+- A 店你去过很多次，平均 8.4 分；
+- B 店你去过很多次，平均 8.7 分；
+- C 店只去过两次，但两次都挺惊艳；
+- D 店去过几次，基本都一般。
 
-- 已经试很多次的动作，主要看经验均值；
-- 还没试够的动作，额外给一点“探索奖金”；
-- 奖金会随着试的次数增加而变小。
+如果只看平均分，你可能直接继续去 B 店。
+但如果 C 店只试过两次，你心里会想：
+“它会不会其实比 B 店更强，只是我还没试够？”
+
+**上置信界（Upper Confidence Bound, UCB）**干的就是这件事：
+除了看平均分，还给“样本少、不确定性大”的动作一笔探索奖金。
 
 ### ② 正式定义
 
-UCB 常见写法是：
+一个常见的 UCB 形式写成：
 
 $$
-a_t = \arg\max_a \left[\hat{\mu}_a + c\sqrt{\frac{\ln t}{N_a}}\right]
+UCB_t(a) = \hat{\mu}_a + c\sqrt{\frac{\ln t}{N_a(t)}}
 $$
 
-你可以把它拆成两部分：
+然后在第 $t$ 轮选择分数最高的动作：
 
 $$
-\text{UCB}_a(t) = \hat{\mu}_a + c\sqrt{\frac{\ln t}{N_a}}
+a_t = \arg\max_a UCB_t(a)
 $$
 
-第一项 $\hat{\mu}_a$ 是“目前看起来有多好”，
-第二项 $c\sqrt{\frac{\ln t}{N_a}}$ 是“我还该不该多给你一点试用机会”。
+这条公式里，每一项都很好解释：
 
-每一项分别是什么意思：
+- $\hat{\mu}_a$：这个动作目前的平均表现；
+- $N_a(t)$：到第 $t$ 轮为止，这个动作已经被试过多少次；
+- $\ln t$：总轮数越大，探索压力会慢慢变小，但不会一下子消失；
+- $c$：探索强度系数，越大越爱试新动作；
+- 第二项整个根号：就是“探索奖金”。
 
-- $\hat{\mu}_a$：动作 $a$ 当前的经验均值；
-- $N_a$：动作 $a$ 已经被试过多少次；
-- $t$：当前已经进行到第几轮；
-- $\ln t$：让探索压力随着总轮数增加而缓慢上升；
-- $c$：人为控制探索力度的系数。
+当 $N_a(t)$ 很小时，分母小，探索奖金就大；
+当一个动作已经被试过很多次，这笔奖金就会慢慢缩小。
 
-如果你想要一句最短解释，那就是：
+> **补充知识：为什么这里会有平方根和对数？**
+>
+> 你不用先把它理解成高深推导。先记住两个方向感就够了：
+> 分母里的次数越大，不确定性越小，所以奖金要下降；总轮数越大，系统还是要留一点探索空间，
+> 但这个空间应该慢慢收敛，不能一直疯跑。
+>
+> 平方根让下降速度别太猛，对数让探索增长别太快。它们本质上是在给“谨慎探索”找一个折中节奏。
 
-$$
-\text{UCB 分数} = \text{经验均值} + \text{不确定性奖金}
-$$
+### ③ 公式推导 + Mermaid 图
 
-### ③ 公式推导 + TikZ 图
+这张图展示了什么：下面这张图把 UCB 的三步拆开了——先算样本均值，再算探索奖金，最后比总分。
+这正好替代旧版里那种不容易在 Markdown 预览里直接看懂的柱状图。
 
-这张图展示了什么：下面这张图把 4 个动作的“样本均值 + 置信区间”画成了柱状图。
-蓝色柱子表示经验均值，橙色误差线表示不确定性，绿色箭头标出当前 UCB 最高的动作。
+```mermaid
+flowchart TD
+    A[输入：4 个候选 action_id 的历史奖励] --> B[分别计算样本均值]
+    A --> C[分别统计每个动作的试验次数]
+    B --> D[代入 UCB 公式]
+    C --> D
+    D --> E[得到 4 个 UCB 分数]
+    E --> F[比较分数并选择最大者]
 
-```latex
-\begin{tikzpicture}[x=1.9cm,y=4.0cm,>=Stealth]
-  \tikzstyle{inputnode}=[draw, rounded corners, fill=blue!15,
-    minimum width=22mm, minimum height=8mm, align=center]
-  \tikzstyle{processnode}=[draw, rounded corners, fill=orange!18,
-    minimum width=24mm, minimum height=8mm, align=center]
-  \tikzstyle{outputnode}=[draw, rounded corners, fill=green!18,
-    minimum width=24mm, minimum height=8mm, align=center]
+    classDef input fill:#E8F4FD,stroke:#1D70B8,color:#111;
+    classDef process fill:#FFF4CC,stroke:#B98900,color:#111;
+    classDef output fill:#E8F8EC,stroke:#2E8B57,color:#111;
 
-  \draw[->] (0,0) -- (5.1,0) node[below] {动作编号};
-  \draw[->] (0,0) -- (0,1.35) node[left] {分数};
-
-  \node[inputnode] at (0.9,1.22) {输入\\样本均值};
-  \node[processnode] at (2.6,1.22) {处理\\加置信上界};
-  \node[outputnode] at (4.25,1.22) {输出\\挑 UCB 最大};
-
-  \draw[fill=blue!25] (0.55,0) rectangle (0.95,0.84);
-  \draw[fill=blue!25] (1.55,0) rectangle (1.95,0.87);
-  \draw[fill=blue!25] (2.55,0) rectangle (2.95,0.875);
-  \draw[fill=blue!25] (3.55,0) rectangle (3.95,0.72);
-
-  \draw[orange, very thick] (0.75,0.84) -- (0.75,1.0188);
-  \draw[orange, very thick] (0.66,1.0188) -- (0.84,1.0188);
-
-  \draw[orange, very thick] (1.75,0.87) -- (1.75,1.0249);
-  \draw[orange, very thick] (1.66,1.0249) -- (1.84,1.0249);
-
-  \draw[orange, very thick] (2.75,0.875) -- (2.75,1.0940);
-  \draw[orange, very thick] (2.66,1.0940) -- (2.84,1.0940);
-
-  \draw[orange, very thick] (3.75,0.72) -- (3.75,1.0297);
-  \draw[orange, very thick] (3.66,1.0297) -- (3.84,1.0297);
-
-  \node[below] at (0.75,0) {12};
-  \node[below] at (1.75,0) {72};
-  \node[below] at (2.75,0) {109};
-  \node[below] at (3.75,0) {155};
-
-  \draw[->, thick, green!60!black] (4.65,1.14) -- (2.86,1.10);
-  \node[outputnode] at (4.5,1.14) {当前 UCB 最高\\优先试 109};
-\end{tikzpicture}
+    class A input;
+    class B,C,D process;
+    class E,F output;
 ```
 
-图里的关键路径/要点：`action_id 109` 的蓝色柱子本来就不低，
-而且试的次数还不算多，所以橙色“探索奖金”也比较可观，
-最后总分冲到了最高。
+图里的关键路径/要点：UCB 不是“均值最大就选谁”，而是“均值 + 不确定性奖金”一起看。
+所以它会偶尔主动去试那些样本还不够多、但看起来可能有潜力的动作。
 
 ### ④ DCVS 实际数值计算示例
 
-假设到第 $t=11$ 轮为止，我们对 4 个动作已经看到了下面这些奖励：
+下面用 4 个候选动作做一个完整 worked example。为了让你能跟着手算，
+我把历史奖励直接列出来，然后做“观测到的奖励序列 → 更新估计 → 选择下一个动作”。
 
-- action_id 12：$0.84, 0.83, 0.85$
-- action_id 72：$0.87, 0.86, 0.88, 0.87$
-- action_id 109：$0.89, 0.86$
-- action_id 155：$0.72$
+先设当前总轮数是第 $13$ 轮，也就是前面已经观察了 12 次动作结果，现在要决定下一轮选谁。
 
-先更新每个动作的样本均值和次数。
+4 个动作的**观测到的奖励序列**如下：
+
+- action_id 12：$[0.84,\ 0.85,\ 0.83]$
+- action_id 72：$[0.87,\ 0.86,\ 0.88,\ 0.87]$
+- action_id 109：$[0.89,\ 0.85]$
+- action_id 155：$[0.72,\ 0.74,\ 0.70]$
+
+先做**更新估计**，也就是算样本均值。
 
 **action_id 12：**
 
-$$
-N_{12} = 3
-$$
-
-$$
-\hat{\mu}_{12} = \frac{0.84 + 0.83 + 0.85}{3} = \frac{2.52}{3} = 0.84
-$$
+- 累计和：$0.84 + 0.85 + 0.83 = 2.52$
+- 次数：$N_{12}(13) = 3$
+- 均值：$\hat{\mu}_{12} = 2.52 \div 3 = 0.84$
 
 **action_id 72：**
 
-$$
-N_{72} = 4
-$$
-
-$$
-\hat{\mu}_{72} = \frac{0.87 + 0.86 + 0.88 + 0.87}{4} = \frac{3.48}{4} = 0.87
-$$
+- 累计和：$0.87 + 0.86 + 0.88 + 0.87 = 3.48$
+- 次数：$N_{72}(13) = 4$
+- 均值：$\hat{\mu}_{72} = 3.48 \div 4 = 0.87$
 
 **action_id 109：**
 
-$$
-N_{109} = 2
-$$
-
-$$
-\hat{\mu}_{109} = \frac{0.89 + 0.86}{2} = \frac{1.75}{2} = 0.875
-$$
+- 累计和：$0.89 + 0.85 = 1.74$
+- 次数：$N_{109}(13) = 2$
+- 均值：$\hat{\mu}_{109} = 1.74 \div 2 = 0.87$
 
 **action_id 155：**
 
-$$
-N_{155} = 1,
-\qquad
-\hat{\mu}_{155} = 0.72
-$$
+- 累计和：$0.72 + 0.74 + 0.70 = 2.16$
+- 次数：$N_{155}(13) = 3$
+- 均值：$\hat{\mu}_{155} = 2.16 \div 3 = 0.72$
 
-现在设 $c = 0.2$，先算公共项：
+接着用 $c = 0.20$，并且先把公共项算出来：
 
 $$
-\ln 11 \approx 2.3979
+\ln 13 \approx 2.5649
 $$
 
-接着逐个算探索奖金。
-
-**action_id 12：**
+**action_id 12 的探索奖金：**
 
 $$
-\sqrt{\frac{\ln 11}{3}} = \sqrt{\frac{2.3979}{3}} = \sqrt{0.7993} \approx 0.8940
+0.20 \cdot \sqrt{\frac{2.5649}{3}} = 0.20 \cdot \sqrt{0.8550} = 0.20 \cdot 0.9246 = 0.1849
 $$
 
 $$
-0.2 \times 0.8940 = 0.1788
+UCB_{13}(12) = 0.84 + 0.1849 = 1.0249
+$$
+
+**action_id 72 的探索奖金：**
+
+$$
+0.20 \cdot \sqrt{\frac{2.5649}{4}} = 0.20 \cdot \sqrt{0.6412} = 0.20 \cdot 0.8008 = 0.1602
 $$
 
 $$
-\text{UCB}_{12} = 0.84 + 0.1788 = 1.0188
+UCB_{13}(72) = 0.87 + 0.1602 = 1.0302
 $$
 
-**action_id 72：**
+**action_id 109 的探索奖金：**
 
 $$
-\sqrt{\frac{2.3979}{4}} = \sqrt{0.5995} \approx 0.7743
-$$
-
-$$
-0.2 \times 0.7743 = 0.1549
+0.20 \cdot \sqrt{\frac{2.5649}{2}} = 0.20 \cdot \sqrt{1.2825} = 0.20 \cdot 1.1325 = 0.2265
 $$
 
 $$
-\text{UCB}_{72} = 0.87 + 0.1549 = 1.0249
+UCB_{13}(109) = 0.87 + 0.2265 = 1.0965
 $$
 
-**action_id 109：**
+**action_id 155 的探索奖金：**
 
 $$
-\sqrt{\frac{2.3979}{2}} = \sqrt{1.19895} \approx 1.0950
-$$
-
-$$
-0.2 \times 1.0950 = 0.2190
+0.20 \cdot \sqrt{\frac{2.5649}{3}} = 0.1849
 $$
 
 $$
-\text{UCB}_{109} = 0.875 + 0.2190 = 1.0940
+UCB_{13}(155) = 0.72 + 0.1849 = 0.9049
 $$
 
-**action_id 155：**
+最后做**选择下一个动作**：
 
-$$
-\sqrt{\frac{2.3979}{1}} = \sqrt{2.3979} \approx 1.5485
-$$
+- action_id 12：$1.0249$
+- action_id 72：$1.0302$
+- action_id 109：$1.0965$
+- action_id 155：$0.9049$
 
-$$
-0.2 \times 1.5485 = 0.3097
-$$
+所以下一轮 UCB 会选 **action_id 109**。
 
-$$
-\text{UCB}_{155} = 0.72 + 0.3097 = 1.0297
-$$
+这里最值得你体会的一点是：
+action_id 72 和 action_id 109 的均值都差不多是 $0.87$，
+但 109 只被试了 2 次，所以它拿到了更大的探索奖金。
 
-最后比较 4 个 UCB 分数：
-
-- $\text{UCB}_{12} = 1.0188$
-- $\text{UCB}_{72} = 1.0249$
-- $\text{UCB}_{109} = 1.0940$
-- $\text{UCB}_{155} = 1.0297$
-
-所以第 11 轮之后，UCB 会优先选择：
-
-$$
-a_{12} = \arg\max_a \text{UCB}_a = \text{action_id 109}
-$$
-
-这里很关键的一点是：UCB 没有盲目偏袒“最少试的动作”。
-`action_id 155` 虽然只试过 1 次，但它均值太低，
-所以最后还是被 `action_id 109` 压过去了。
-
-## 4. 汤普森采样（Thompson Sampling）：像给每个动作都抽一张“今天可能有多强”的签
+## 4. Thompson Sampling 为什么很讨喜：它把“不确定”直接当成随机性来抽样
 
 ### ① 直觉类比
 
-如果说 UCB 是“均值 + 探索奖金”的算分派，
-那汤普森采样更像“每个动作先抽一次签，再让抽到最高签的那个上场”。
+UCB 的思路像是在给每个动作发“探索补贴”。
+而 **Thompson Sampling** 更像这样：
 
-它不会直接比较固定分数，而是先承认：
+“我给每个动作都保留一个当前信心分布，然后每轮从各自分布里各抽一次，谁抽出来最亮眼，我就先试谁。”
 
-- 我对每个动作的真实水平，其实都还不完全确定；
-- 那不如先按当前认知，给每个动作随机抽一个“可能实力值”；
-- 谁这次抽得最高，就选谁。
-
-这种做法的妙处在于：
-
-- 已经很强、而且证据充分的动作，经常会抽到高值；
-- 潜力不明、但还没试够的动作，也偶尔能抽到高值，拿到探索机会。
+这种做法很自然，因为它不是硬编码“每隔几轮必须探索一次”，
+而是让不确定性自己通过随机抽样体现出来。
 
 ### ② 正式定义
 
-为了把概念讲得最简单，我们先把每次窗口结果压成“成功 / 失败”二元事件：
+为了先把直觉立住，我们先讲最容易懂的二值版本：
+把每一轮结果简化成“成功 / 失败”。
 
-- 成功：FPS $\ge 59$，并且功耗 $\le 4500$ mW；
-- 失败：其他情况。
+这里我们定义：
 
-这样每个动作的“成功概率”就可以记成 $\theta_a$。
+- 成功：FPS 至少 `59`，而且功耗不超过 `4500 mW`；
+- 失败：不满足上面任一条件。
 
-在汤普森采样里，一个常见做法是给它一个 Beta 后验：
+对某个动作的成功概率 $\theta_a$，先验可以写成：
 
 $$
 \theta_a \sim \text{Beta}(\alpha_a, \beta_a)
 $$
 
-如果我们用最朴素的先验 $\text{Beta}(1,1)$，
-那么看到若干次成功和失败之后，就有：
+如果这个动作已经观察到 $s_a$ 次成功、$f_a$ 次失败，后验会变成：
 
 $$
-\alpha_a = 1 + \text{成功次数},
-\qquad
-\beta_a = 1 + \text{失败次数}
+\theta_a \mid \mathcal{D}_a \sim \text{Beta}(\alpha_a + s_a, \beta_a + f_a)
 $$
 
-每一轮的决策规则是：
+做决策时，从每个动作的后验里各采样一次：
 
 $$
-\tilde{\theta}_a \sim \text{Beta}(\alpha_a, \beta_a),
-\qquad
+\tilde{\theta}_a \sim \text{Beta}(\alpha_a, \beta_a), \quad
 a_t = \arg\max_a \tilde{\theta}_a
 $$
 
-> **补充知识：Beta 分布（Beta Distribution）是什么**
+> **补充知识：Beta 分布到底是什么？**
 >
-> 先别把它想复杂。你可以把 Beta 分布理解成：
-> “我对某个成功概率 $p$ 的主观信心，长什么样子”。
-> 如果一开始完全没把握，就用 $\text{Beta}(1,1)$，它相当于在 $0$ 到 $1$ 之间比较平均。
+> **Beta 分布（Beta Distribution）**最常见的用法，就是拿来表示“某个成功概率我们现在有多确定”。
+> 它的横轴是 0 到 1，正好很适合装“成功概率”这种东西。
 >
-> 如果像掷硬币一样，做了 $N$ 次试验，其中成功了 $K$ 次，
-> 那么在 $\text{Beta}(1,1)$ 先验下，后验就会变成：
-> $\text{Beta}(1+K, 1+N-K)$。
-> 成功越多，曲线就越往“高成功率”那边偏；失败越多，就越往左偏。
+> 你可以先把参数 $\alpha$ 想成“成功票数”，把 $\beta$ 想成“失败票数”。
+> 比如 `Beta(1,1)` 很均匀，表示“我还没什么偏见”；如果更新成 `Beta(5,2)`，
+> 直觉上就是“成功证据更多，所以我相信它大概率偏向高成功率那边”。
 
-### ③ 公式推导 + TikZ 图
+### ③ 公式推导 + Mermaid 图
 
-这张图展示了什么：下面这张图用一条平的先验曲线和一条偏向右侧的后验曲线，
-说明“观察到更多成功之后，我们会更相信这个动作本来就比较靠谱”。
+这张图展示了什么：下面这个状态图把 Thompson Sampling 的一轮流程串起来了。
+它强调的不是“平均值”，而是“先更新分布，再从分布里抽样”。
 
-```latex
-\begin{tikzpicture}[>=Stealth]
-  \tikzstyle{inputnode}=[draw, rounded corners, fill=blue!15,
-    minimum width=24mm, minimum height=8mm, align=center]
-  \tikzstyle{processnode}=[draw, rounded corners, fill=orange!18,
-    minimum width=24mm, minimum height=8mm, align=center]
-  \tikzstyle{outputnode}=[draw, rounded corners, fill=green!18,
-    minimum width=24mm, minimum height=8mm, align=center]
-
-  \draw[->] (0,0) -- (5.6,0) node[below] {成功概率 $p$};
-  \draw[->] (0,0) -- (0,3.4) node[left] {可信程度};
-
-  \draw[blue, thick] (0.5,1.1) .. controls (1.8,1.1) and (3.7,1.1) .. (5.0,1.1);
-  \draw[orange, thick] (0.5,0.15) .. controls (2.2,0.5) and (3.3,3.1) .. (5.0,0.9);
-
-  \node[inputnode] at (1.35,3.0) {先验\\Beta(1,1)};
-  \node[processnode] at (3.0,3.0) {处理中间信息\\看到 4 成 1 败};
-  \node[outputnode] at (4.65,3.0) {后验\\Beta(5,2)};
-
-  \draw[->, thick] (1.85,2.8) -- node[above] {观测数据} (4.1,2.8);
-\end{tikzpicture}
+```mermaid
+stateDiagram-v2
+    [*] --> 先验分布
+    先验分布 --> 观察结果: 收到成功或失败
+    观察结果 --> 更新后验: 调整 alpha beta
+    更新后验 --> 采样比较: 每个动作抽一个值
+    采样比较 --> 选择动作: 选抽样值最大的动作
+    选择动作 --> [*]
 ```
 
-图里的关键路径/要点：先验是“还没试之前的看法”，
-后验是“试过以后修正过的看法”。
-汤普森采样每轮都会从这个后验里抽一个样本值出来做决策。
+图里的关键路径/要点：Thompson Sampling 的探索不是另外加出来的，
+而是通过“从不确定分布里采样”自然冒出来的。越不确定的动作，抽到高值的机会就越大。
 
 ### ④ DCVS 实际数值计算示例
 
-先做一个最简单的单动作例子。
+下面继续用 4 个动作做一个完整例子。
+为了方便直观理解，我先把连续奖励压成成功 / 失败标签。
 
-假设 `action_id 72` 在 5 个窗口里：
+4 个动作的**观测到的奖励序列**先二值化如下：
 
-- 成功 4 次；
-- 失败 1 次。
+- action_id 12：成功、成功、失败、成功
+- action_id 72：成功、成功、成功、失败、成功
+- action_id 109：成功、失败、成功、失败、成功
+- action_id 155：失败、失败、成功、失败
 
-如果先验是 $\text{Beta}(1,1)$，
-那后验就是：
-
-$$
-\text{Beta}(1+4, 1+1) = \text{Beta}(5,2)
-$$
-
-它的后验均值可以顺手算一下：
+我们给所有动作都放同样的先验：
 
 $$
-\mathbb{E}[\theta \mid \text{数据}] = \frac{\alpha}{\alpha + \beta} = \frac{5}{5+2} = \frac{5}{7}
+\text{Prior} = \text{Beta}(1,1)
 $$
 
-$$
-\frac{5}{7} \approx 0.7143
-$$
+现在做**更新估计**。
 
-这不表示它下一次一定有 `71.43%` 的成功率，
-而是说：结合目前证据，我们对它的成功概率判断，已经明显往右偏了。
+**action_id 72：**
 
-现在把 4 个动作一起放进来：
+- 初始：`Beta(1,1)`
+- 第 1 次成功后：`Beta(2,1)`
+- 第 2 次成功后：`Beta(3,1)`
+- 第 3 次成功后：`Beta(4,1)`
+- 第 4 次失败后：`Beta(4,2)`
+- 第 5 次成功后：`Beta(5,2)`
 
-- action_id 12：成功 2 次，失败 1 次，所以后验是 $\text{Beta}(3,2)$；
-- action_id 72：成功 3 次，失败 1 次，所以后验是 $\text{Beta}(4,2)$；
-- action_id 109：成功 2 次，失败 0 次，所以后验是 $\text{Beta}(3,1)$；
-- action_id 155：成功 0 次，失败 1 次，所以后验是 $\text{Beta}(1,2)$。
-
-接下来这一轮，汤普森采样会对每个动作各抽一次样本。
-假设这次恰好抽到了：
-
-- action_id 12：$0.58$
-- action_id 72：$0.69$
-- action_id 109：$0.83$
-- action_id 155：$0.21$
-
-因为 $0.83$ 最大，所以这一轮选：
+所以 action_id 72 的后验就是：
 
 $$
-a_t = \text{action_id 109}
+\theta_{72} \mid \mathcal{D}_{72} \sim \text{Beta}(5,2)
 $$
 
-下次再抽，结果可能会不同。
-这正是它“自动平衡探索和利用”的地方：
-高把握动作经常赢，但不是次次都垄断机会。
+同理，其他 3 个动作：
 
-## 5. 用 4 个 action_id 走一遍完整 worked example
+- action_id 12：3 成功 1 失败，所以是 `Beta(4,2)`；
+- action_id 109：3 成功 2 失败，所以是 `Beta(4,3)`；
+- action_id 155：1 成功 3 失败，所以是 `Beta(2,4)`。
 
-这一节我们把要求里的 4 个动作完整串起来，按“观测到的奖励序列 → 更新估计 →
-选择下一个动作”的顺序走一遍。
+假设这一轮采样时，4 个动作各自抽到了下面这些值：
 
-### 观测到的奖励序列
+- action_id 12：抽到 $0.68$
+- action_id 72：抽到 $0.77$
+- action_id 109：抽到 $0.63$
+- action_id 155：抽到 $0.29$
 
-假设前面已经记录到如下奖励：
+于是这一轮的**选择下一个动作**就是 **action_id 72**。
 
-- action_id 12：$0.84, 0.83, 0.85$
-- action_id 72：$0.87, 0.86, 0.88, 0.87$
-- action_id 109：$0.89, 0.86$
-- action_id 155：$0.72$
+要注意，这里的采样值每轮都可能不同。
+也正因为不同，Thompson Sampling 才能一边保留探索，一边把更多机会给看起来更靠谱的动作。
 
-### 更新估计
-
-先更新次数：
-
-- $N_{12} = 3$
-- $N_{72} = 4$
-- $N_{109} = 2$
-- $N_{155} = 1$
-
-再更新样本均值：
-
-$$
-\hat{\mu}_{12} = \frac{0.84 + 0.83 + 0.85}{3} = 0.84
-$$
-
-$$
-\hat{\mu}_{72} = \frac{0.87 + 0.86 + 0.88 + 0.87}{4} = 0.87
-$$
-
-$$
-\hat{\mu}_{109} = \frac{0.89 + 0.86}{2} = 0.875
-$$
-
-$$
-\hat{\mu}_{155} = 0.72
-$$
-
-如果你走 UCB 路线，接下来会继续算探索奖金；
-如果你走汤普森采样路线，接下来会把成功 / 失败次数更新成新的 Beta 后验。
-
-### 选择下一个动作
-
-沿用上一节的 UCB 结果：
-
-- $\text{UCB}_{12} = 1.0188$
-- $\text{UCB}_{72} = 1.0249$
-- $\text{UCB}_{109} = 1.0940$
-- $\text{UCB}_{155} = 1.0297$
-
-因此，下一个动作会选：
-
-$$
-\text{next action} = \text{action_id 109}
-$$
-
-如果换成汤普森采样，
-只要这一轮从各自后验里抽出来的样本值里，109 仍然最大，
-结果也会落到 `action_id 109`。
-
-这个 worked example 想传达的核心只有一句话：
-
-- Bandit 不是一次算出永远正确的动作；
-- 它是每一轮都用最新观测，把“下一次更值得试谁”往前推一步。
-
-## 6. plain bandit 的局限：同一个动作，不会在所有场景里都一样好
+## 5. plain bandit 的局限：为什么它最后会自然长成 contextual bandit
 
 ### ① 直觉类比
 
-同一把伞，在暴雨天和大太阳天的价值，显然不一样。
-同一个 DCVS 动作，在团战、高负载、发热明显的时候，
-和在菜单、低负载、温度很低的时候，表现也不会一样。
+你不会在不知道天气的情况下决定今天带不带伞。
+同样地，DCVS 也不该在不知道当前负载、温度、上一窗口表现的情况下盲选动作。
+
+plain bandit 的问题就在这里：
+它默认“一个动作的价值大体固定”，仿佛 action_id 72 永远都和昨天、今天、低温、高温时一样好。
+但真实手机系统不是这样的。
 
 ### ② 正式定义
 
-plain bandit 默认有一个很强的假设：
+如果把当前环境信息也放进决策里，我们就得到了**上下文（Context）**，
+进一步就会得到**上下文老虎机（Contextual Bandit）**。
+
+它的核心想法是：动作好不好，不只取决于动作本身，还取决于当前上下文 $x_t$。
 
 $$
-\mu_a \text{ 是固定的}
+a_t = \arg\max_a \hat{r}(x_t, a)
 $$
 
-也就是它假设：动作 $a$ 的平均回报，不随上下文变化。
-
-但 DCVS 的实际情况更像：
+在 GPU DCVS 场景里，一个很实用的短历史上下文向量可以写成：
 
 $$
-\mu(a, x_t) \text{ 会随着上下文 } x_t \text{ 变化}
+x_t = [\text{gpu\_usage},\ \text{gpu\_power},\ \text{FPS},\ \text{当前频率},\ \text{过去 1\sim3 个窗口统计}]
 $$
 
-这里的上下文 $x_t$ 可能包括：
+这里的“过去 1 到 3 个窗口统计”特别关键，
+因为热积累、governor hysteresis、场景切换都不是完全无记忆的。
 
-- 当前 GPU 利用率；
-- 当前游戏场景；
-- 当前温度与热状态；
-- 前 1 到 3 个窗口的历史统计；
-- 上一个动作和上一个奖励。
+### ③ 公式推导 + Mermaid 图
 
-### ③ 公式推导 + TikZ 图
+这张图展示了什么：下面这张图把 plain bandit 和 contextual bandit 的差别并排摆出来了。
+左边只看动作，右边会先看上下文，再在安全范围里选动作。
 
-这张图展示了什么：同一个 `action_id 72`，放在两个完全不同的上下文里，
-拿到的奖励可能差很多。也正因为如此，plain bandit 很快就不够用了。
+```mermaid
+flowchart TD
+    A[当前窗口开始] --> B[读取短历史上下文]
+    B --> C[过滤出安全动作子集 safe action subset]
+    C --> D[在安全动作里打分]
+    D --> E[输出本轮 action_id]
+    E --> F[观察 FPS 功耗 奖励]
+    F --> G[把结果并回下一轮上下文]
 
-```latex
-\begin{tikzpicture}[>=Stealth, node distance=12mm and 10mm]
-  \tikzstyle{inputnode}=[draw, rounded corners, fill=blue!15,
-    minimum width=32mm, minimum height=9mm, align=center]
-  \tikzstyle{processnode}=[draw, rounded corners, fill=orange!18,
-    minimum width=34mm, minimum height=9mm, align=center]
-  \tikzstyle{outputnode}=[draw, rounded corners, fill=green!18,
-    minimum width=34mm, minimum height=9mm, align=center]
+    classDef input fill:#E8F4FD,stroke:#1D70B8,color:#111;
+    classDef process fill:#FFF4CC,stroke:#B98900,color:#111;
+    classDef output fill:#E8F8EC,stroke:#2E8B57,color:#111;
 
-  \node[inputnode] (action) {输入\\同一个动作\\action\_id 72};
-  \node[processnode, below left=of action] (heavy) {处理\\团战高负载\\温度持续升高};
-  \node[processnode, below right=of action] (light) {处理\\菜单低负载\\温度较低};
-  \node[outputnode, below=of heavy] (heavyout) {输出\\FPS 稳 60\\奖励约 0.87};
-  \node[outputnode, below=of light] (lightout) {输出\\FPS 也稳\\但功耗偏高\\奖励可能不如低频动作};
-
-  \draw[->, thick] (action) -- node[left] {放进高负载上下文} (heavy);
-  \draw[->, thick] (action) -- node[right] {放进低负载上下文} (light);
-  \draw[->, thick] (heavy) -- node[right] {得到结果} (heavyout);
-  \draw[->, thick] (light) -- node[left] {得到结果} (lightout);
-\end{tikzpicture}
+    class A,B input;
+    class C,D,F process;
+    class E,G output;
 ```
 
-图里的关键路径/要点：不是动作本身“永远好”或者“永远坏”，
-而是动作和上下文要配套看。
+图里的关键路径/要点：一旦把上下文和安全过滤接进来，Bandit 就不再是“盲试动作”，
+而是“在当前环境下，从安全候选里挑最值的那个”。这就更像真实 DCVS 系统了。
 
 ### ④ DCVS 实际数值计算示例
 
-还是拿 `action_id 72` 来看。
+假设当前窗口的上下文是：
 
-**场景 A：团战，高负载。**
+- 当前 FPS：`59.4`
+- 当前 GPU 使用率：`91%`
+- 当前功耗：`4300 mW`
+- 当前频率：`500 MHz`
+- 最近两个窗口都出现了轻微热升高
 
-- GPU 频率：`545 MHz`
-- FPS：`60`
-- 功耗：`4200 mW`
+这时如果还按 plain bandit 的平均分硬选，可能会继续大胆试低频动作。
+但 contextual bandit 会先做一层很工程化的保护：
 
-前面已经算过：
+- 把明显危险的动作先踢出 `safe action subset`；
+- 比如把会把频率直接压到 `355 MHz` 且最近常掉到 `58 FPS` 的动作先排除；
+- 剩下再在 `500 MHz`、`545 MHz`、`430 MHz` 这些候选中比较。
 
-$$
-r_A = 0.86875
-$$
+这样做的好处不是“绝对更聪明”，而是“更不容易把线上体验试崩”。
 
-**场景 B：菜单，低负载。**
+## 6. 为什么三个来源文档会给出不同建议
 
-这时如果你还用 `action_id 72`，
-假设结果变成：
+这一点很关键，因为你在项目资料里确实会看到不止一种答案。
 
-- GPU 频率：`545 MHz`
-- FPS：`60`
-- 功耗：`5200 mW`
+| 来源 | 主要关注点 | 为什么建议不同 |
+|---|---|---|
+| `RL_Algorithm_Selection_for_GPU_DCVS_Tuning_20260401.md` | 离线数据覆盖率、动作空间、时间依赖 | 它强调当前只覆盖了约 `30/192` 个动作，而且时间依赖并不完全可忽略，所以更偏向离线安全方法，比如 CQL、IQL |
+| `RL_DCVS_AI_Integrated_Decision_2026-04-01.md` | 现有数据几乎是单策略偏置、需要安全壳 | 它建议主策略用离线值函数方法，再叠一层 runtime safety shield，必要时再加 contextual bandit 做在线微调 |
+| `RL_DCVS_Runtime_Adaptive_Independent_Decision_GPT-5.4_2026-04-01_135421.md` | 运行时自适应、短历史、在线小步快跑 | 它认为问题更像短历史上下文决策，所以更推荐 Safe Contextual Bandit，尤其是 Thompson Sampling 或 LinUCB |
 
-那奖励会变成：
+所以这三份资料并不是互相打脸，而是**站位不同**：
 
-$$
-r_{\text{base},B} = \frac{60}{60} - 0.25 \cdot \frac{5200}{8000}
-$$
+- 如果你关心的是“我已经有一批离线轨迹，怎么安全地学一个策略”，那 CQL、IQL 更像主角；
+- 如果你关心的是“我在线上每个窗口怎么快速做一个小决定”，Bandit 尤其是 contextual bandit 会更自然；
+- 如果你同时关心线上安全，那就经常会看到“安全过滤 + 上层 bandit + 下层离线策略”的混合方案。
 
-先算功耗项：
+换句话说，分歧不是来自“谁对谁错”，而是来自下面这些假设不同：
 
-$$
-\frac{5200}{8000} = 0.65
-$$
-
-$$
-0.25 \cdot 0.65 = 0.1625
-$$
-
-所以：
-
-$$
-r_B = 1 - 0.1625 = 0.8375
-$$
-
-也就是说，同一个动作在两个上下文里的奖励差了：
-
-$$
-0.86875 - 0.8375 = 0.03125
-$$
-
-别小看这个差值。在线调很多轮以后，它会持续积累，
-最后把动作排序完全改写。
-
-这也是为什么 plain bandit 只是第一步。
-一旦你意识到“上下文变了，动作好坏也会变”，
-下一个更自然的框架就是**上下文老虎机（Contextual Bandit）**。
-
-## 7. 和项目源文档连起来看：为什么有人推 MDP，有人推 contextual bandit
-
-到这里，你应该能理解三份源材料为什么会出现不同判断了。
-
-- 如果你把问题看成“每个小窗口先根据当前情况选一个动作，立刻看奖励”，
-  那它很像 bandit，运行时文档自然会偏向汤普森采样，
-  甚至明确提到安全动作子集（safe action subset）。
-- 如果你把热积累、governor 惯性、前几个窗口的影响都看得更重，
-  那 plain bandit 就过于简化，建模上会更靠近 MDP。
-- 如果你注意到当前离线数据覆盖并不充分，
-  比如现有 `offline_test_iter5` 样本里明显偏向单一 `action_id`，
-  那你也会知道：不管是 UCB 还是汤普森采样，在线阶段都得格外重视安全约束。
-
-所以比较稳的工程结论通常不是“Bandit 永远最好”或者“MDP 永远最好”，
-而是：
-
-- plain bandit 适合拿来搭最小在线决策闭环；
-- 上下文老虎机适合把当前场景差异纳进来；
-- 更强的时序依赖，再往 MDP 和完整 RL 走。
+- 你到底是在做 **Bandit 还是 MDP**；
+- 你到底是在做 **在线学习还是离线学习**；
+- 你面对的是 **192 个离散动作**，还是以后要扩成连续动作；
+- 你更在乎 **即时适应**，还是更在乎 **长期保守安全**。
 
 ## 关键收获
 
-- 多臂老虎机（Multi-Armed Bandit）最适合帮助你建立“有限试错预算下怎么在线选动作”的直觉。
-- 累积遗憾（Cumulative Regret）衡量的不是你这轮有没有赢，而是你离最优动作还差了多少。
-- 样本均值和大数定律告诉我们：动作试得越多，均值估计通常越稳。
-- UCB 的核心就是“经验均值 + 不确定性奖金”，它会优先给“看起来不错、但还没试够”的动作机会。
-- 汤普森采样（Thompson Sampling）会给每个动作维护一个不确定性分布，再通过随机抽样完成探索。
-- Beta 分布（Beta Distribution）之所以常出现，是因为它很适合描述“成功概率到底有多大”这件事。
-- plain bandit 的大前提是“每个动作的平均好坏基本固定”，而这在 DCVS 里通常不成立。
-- 当 GPU 负载、温度、游戏场景持续变化时，就该从 plain bandit 迈向上下文老虎机（Contextual Bandit）。
+- 多臂老虎机先帮我们抓住最核心的在线决策直觉：每次从很多动作里选一个，立刻看奖励，边试边学。
+- 在 GPU DCVS 里，192 个离散动作完全可以先被看成 192 台老虎机，每轮比较的是“稳帧和省电谁更划算”。
+- 样本均值是最基础的估计器，大数定律告诉我们：样本够多时，平均值会越来越稳。
+- UCB 的关键不是只看均值，而是“均值 + 探索奖金”；样本少的动作会先拿到更多关注。
+- Thompson Sampling 的关键不是额外写探索规则，而是让不确定性通过后验采样自然冒出来。
+- plain bandit 最大的短板，是它太容易把动作价值看成固定不变；而真实 DCVS 明显受上下文和短历史影响。
+- 这也是为什么项目资料里会同时出现 CQL、IQL、contextual bandit：它们分别对应不同问题建模和不同工程阶段。

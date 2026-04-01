@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$doc = Join-Path $PSScriptRoot '..\\04_Multi_Armed_Bandits.md'
+$doc = Join-Path $PSScriptRoot '..\04_Multi_Armed_Bandits.md'
 
 if (-not (Test-Path $doc)) {
     throw "缺少目标文档: $doc"
@@ -28,6 +28,31 @@ for ($index = 0; $index -lt $lines.Count; $index++) {
 $raw = Get-Content $doc -Raw -Encoding UTF8
 if (-not $raw.EndsWith("`n")) {
     throw '文件末尾缺少换行'
+}
+
+if ($raw.Contains('assets/tikz-preview')) {
+    throw '正文不应再依赖 tikz-preview 静态图资源'
+}
+
+$appendixHeading = '## 附录：TikZ源码（可选）'
+$appendixIndex = $raw.IndexOf($appendixHeading)
+$latexMatches = [regex]::Matches($raw, '```latex')
+if ($appendixIndex -lt 0) {
+    if ($latexMatches.Count -gt 0) {
+        throw '正文不应包含 LaTeX 图代码块；如需保留 TikZ，请放到附录里'
+    }
+}
+else {
+    foreach ($match in $latexMatches) {
+        if ($match.Index -lt $appendixIndex) {
+            throw '检测到附录标题之前出现 LaTeX 图代码块，正文图必须改用 Mermaid'
+        }
+    }
+}
+
+$mermaidBlocks = ([regex]::Matches($raw, '```mermaid')).Count
+if ($mermaidBlocks -lt 3) {
+    throw "Mermaid 图数量不足，当前为 $mermaidBlocks，期望至少 3 个"
 }
 
 Write-Host 'PASS: Markdown 本地 lint 通过'
