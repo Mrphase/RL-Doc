@@ -1,37 +1,64 @@
 tasks:
   - title: Create 01_DCVS_Background.md
     completed: false
-    description: |
+    description: >
       Create learn/01_DCVS_Background.md.
 
+
       【全局要求——每个任务都必须遵守】
+
       - 全部用中文书写，语言要通俗易懂，像导师面对面讲解。
+
       - 首次出现的专业术语同时给英文原名：中文名（English Term）。
+
       - 遇到超出基础线性代数/概率/微积分的知识点，必须插入"补充知识"框（用 > blockquote）从零解释。
-      - 对复杂计算流程、算法流程、公式推导，必须用 LaTeX + TikZ 画流程图/示意图，以 ```latex 代码块嵌入。
+
+      - 对复杂计算流程、算法流程、公式推导，必须用 Mermaid 画流程图/示意图，以 ```mermaid 代码块嵌入。
+
       - 数值计算写出每一步中间结果，不跳步。
-      - 概念讲解四步法：① 直觉类比 → ② 正式定义 → ③ 公式推导+TikZ图 → ④ DCVS实际数值示例。
+
+      - 概念讲解四步法：① 直觉类比 → ② 正式定义 → ③ 公式推导+Mermaid图 → ④ DCVS实际数值示例。
+
       - 文档开头写"前置阅读"，结尾写"关键收获"。
 
+
       Goal:
+
       从零介绍问题背景，让一个RL基础薄弱的读者能理解GPU DCVS调参到底在解决什么问题。
 
+
       Required content:
-      - 用类比解释DCVS（Dynamic Clock and Voltage Scaling）：像汽车的油门和挡位——GPU频率就是油门开度，电压就是油耗，目标是在不掉速（不掉帧）的前提下尽量省油（省电）。
-      - 解释Qualcomm 8850平台的四个可调参数：first_step_down, penalty_down, penalty_up, strict_frame，用日常例子说明每个参数的直觉含义。
-      - 用TikZ画一张"DCVS控制回路"示意图：游戏场景→GPU负载→DCVS控制器→调整频率/电压→影响FPS和功耗→反馈。
+
+      - 用类比解释DCVS（Dynamic Clock and Voltage
+      Scaling）：像汽车的油门和挡位——GPU频率就是油门开度，电压就是油耗，目标是在不掉速（不掉帧）的前提下尽量省油（省电）。
+
+      - 解释Qualcomm 8850平台的四个可调参数：first_step_down, penalty_down, penalty_up,
+      strict_frame，用日常例子说明每个参数的直觉含义。
+
+      - 用Mermaid画一张"DCVS控制回路"示意图：游戏场景→GPU负载→DCVS控制器→调整频率/电压→影响FPS和功耗→反馈。
+
       - 解释总体目标：维持FPS >= 59的同时降低频率和功耗。
+
       - 用表格总结CSV数据中最重要的字段（帧时序、GPU频率、GPU负载、CPU频率/负载、能耗、fence延迟、reward、action_id）。
-      - 用一个具体数值例子：GPU频率282 MHz、期望帧时长16.67 ms、fence延迟8.95 ms、GPU利用率5.8%，解释这组数据意味着什么。
+
+      - 用一个具体数值例子：GPU频率282 MHz、期望帧时长16.67 ms、fence延迟8.95
+      ms、GPU利用率5.8%，解释这组数据意味着什么。
+
       - 解释为什么这是一个序列决策问题而非一次性调参问题（热积累、governor惯性、场景切换）。
 
-      Required sources:
-      - RL_Algorithm_Selection_for_GPU_DCVS_Tuning_20260401.md
-      - RL_DCVS_AI_Integrated_Decision_2026-04-01.md
-      - RL_DCVS_Runtime_Adaptive_Independent_Decision_GPT-5.4_2026-04-01_135421.md
-      - D:\D_Code_2\QCOM-RL\collect_qgtf_dataset.py
-      - D:\D_Code_2\QCOM-RL\offline_test_iter5
 
+      Required sources:
+
+      - RL_Algorithm_Selection_for_GPU_DCVS_Tuning_20260401.md
+
+      - RL_DCVS_AI_Integrated_Decision_2026-04-01.md
+
+      -
+      RL_DCVS_Runtime_Adaptive_Independent_Decision_GPT-5.4_2026-04-01_135421.md
+
+      - D:\D_Code_2\QCOM-RL\collect_qgtf_dataset.py
+
+      - D:\D_Code_2\QCOM-RL\offline_test_iter5
   - title: Create 02_RL_Core_Concepts.md
     completed: false
     description: |
@@ -46,12 +73,11 @@ tasks:
       - 用"餐厅选菜"类比引入：智能体（Agent）=你、环境（Environment）=餐厅、状态（State）=今天的心情和饥饿度、动作（Action）=点哪道菜、奖励（Reward）=满意度。然后切换到DCVS场景。
       - 正式定义MDP五元组 (S, A, P, R, γ)，映射到DCVS：S=GPU指标向量, A=192个DCVS参数组合, R=FPS+频率+功耗的奖励函数。
       - 推导Bellman期望方程和Bellman最优方程，每一步推导之间插入一句话解释"这一步在干什么"。
-      - 用TikZ画一张"MDP状态转移图"：3个简化DCVS状态（低负载/中负载/高负载）× 4个动作，标注转移概率和奖励。
+      - 用Mermaid画一张"MDP状态转移图"：3个简化DCVS状态（低负载/中负载/高负载）× 4个动作，标注转移概率和奖励。
       - 补充知识框：解释"期望"（Expected Value）的含义——加权平均，给一个掷骰子的数值例子。
       - 补充知识框：解释"折扣因子γ"为什么存在——用"今天的100块 vs 明天的100块"类比。
       - 用一个3状态×4动作的toy DCVS例子，手算一次回报（Return）计算和一次Bellman backup计算，写出每步中间结果。
       - 解释即时奖励优化 vs 长期优化的区别：热积累和governor惯性导致当前动作影响未来状态。
-
   - title: Create 03_Exploration_vs_Exploitation.md
     completed: false
     description: |
@@ -66,135 +92,203 @@ tasks:
       - 用"你在一条美食街上选餐厅"的类比引入：是去你知道好吃的老店(利用)，还是试试新开的店(探索)？
       - 正式定义探索（Exploration）和利用（Exploitation）。
       - 介绍ε-greedy策略、乐观初始化（Optimistic Initialization）、Softmax探索、UCB直觉。
-      - 用TikZ画一张"探索-利用权衡"的决策树图。
+      - 用Mermaid画一张"探索-利用权衡"的决策树图。
       - 重点强调：在真机上运行游戏时，糟糕的探索动作会直接导致FPS暴跌、用户体验崩溃——这就是为什么"安全探索"是本项目的核心关切。
       - 提供一个ε-greedy的数值示例：ε=0.1时，从192个DCVS动作中选择的概率分布是怎样的。
       - 提供一个置信度上界（confidence-bound）风格的数值示例：两个候选动作的平均奖励和尝试次数，如何选择。
-
   - title: Create 04_Multi_Armed_Bandits.md
     completed: false
     parallel_group: 1
-    description: |
+    description: >
       Create learn/04_Multi_Armed_Bandits.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       介绍多臂老虎机（Multi-Armed Bandit）——最简单的在线决策框架。
 
-      Required content:
-      - 类比引入：赌场里面对一排老虎机，每台的中奖概率不同，你怎样在有限次数内赚最多？这就是192个DCVS参数组合面临的选择。
-      - 正式定义Bandit问题和累积遗憾（Cumulative Regret）。
-      - 补充知识框：解释"样本均值"和"大数定律"——拉的次数越多，平均回报越接近真实期望。
-      - 推导UCB公式 $a_t = \arg\max_a \left[\hat{\mu}_a + c\sqrt{\frac{\ln t}{N_a}}\right]$，解释每一项的含义。
-      - 用TikZ画UCB选择过程的示意图：多个臂的均值+置信区间的柱状图。
-      - 解释Thompson Sampling的直觉和一个简单的Beta分布采样例子。
-      - 补充知识框：Beta分布是什么——"掷硬币N次，正面K次"的后验分布，画一个简单的形状说明。
-      - 用3-4个候选action_id做一个完整的worked example：观测到的奖励序列→更新估计→选择下一个动作。
-      - 解释plain bandit的局限：当GPU负载、游戏场景变化时，同一个动作的好坏也会变——这就引出了上下文老虎机。
 
+      Required content:
+
+      - 类比引入：赌场里面对一排老虎机，每台的中奖概率不同，你怎样在有限次数内赚最多？这就是192个DCVS参数组合面临的选择。
+
+      - 正式定义Bandit问题和累积遗憾（Cumulative Regret）。
+
+      - 补充知识框：解释"样本均值"和"大数定律"——拉的次数越多，平均回报越接近真实期望。
+
+      - 推导UCB公式 $a_t = \arg\max_a \left[\hat{\mu}_a + c\sqrt{\frac{\ln
+      t}{N_a}}\right]$，解释每一项的含义。
+
+      - 用Mermaid画UCB选择过程的示意图：多个臂的均值+置信区间的柱状图。
+
+      - 解释Thompson Sampling的直觉和一个简单的Beta分布采样例子。
+
+      - 补充知识框：Beta分布是什么——"掷硬币N次，正面K次"的后验分布，画一个简单的形状说明。
+
+      - 用3-4个候选action_id做一个完整的worked example：观测到的奖励序列→更新估计→选择下一个动作。
+
+      - 解释plain bandit的局限：当GPU负载、游戏场景变化时，同一个动作的好坏也会变——这就引出了上下文老虎机。
   - title: Create 05_Contextual_Bandits.md
     completed: false
     parallel_group: 1
-    description: |
+    description: >
       Create learn/05_Contextual_Bandits.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       讲清楚上下文老虎机（Contextual Bandit）——连接简单Bandit与完整RL的关键桥梁。
 
+
       Required content:
+
       - 类比引入：同一把伞，下雨天值10块，晴天值0块——"上下文"决定了动作的好坏。GPU负载高时和GPU负载低时，同样的DCVS参数效果完全不同。
+
       - 正式定义上下文（Context）、动作（Action）、奖励（Reward）。
+
       - 解释为什么gpu_usage_pct、gpu_freq_hz、lateness_ms、power_mw等可以组成上下文向量。
+
       - 推导LinUCB算法的核心步骤：
         - 补充知识框：矩阵求逆——什么是 $A^{-1}$，为什么要用它，用2×2矩阵做一个手算例子。
         - 预测值 $\hat{r} = x^T \theta$
         - 置信宽度 $\alpha \sqrt{x^T A^{-1} x}$
         - 选择规则 $a_t = \arg\max_a (x_a^T \hat{\theta}_a + \alpha \sqrt{x_a^T A_a^{-1} x_a})$
-      - 用TikZ画LinUCB的一个决策周期流程图：观测上下文→计算每个臂的得分→选择最高分→观测奖励→更新参数。
-      - 提供一个完整的LinUCB数值示例：3维特征向量（gpu_usage_norm, lateness_norm, gpu_freq_norm）、2个候选动作、手算选择过程。
-      - 简要介绍Neural Contextual Bandit和Neural Thompson Sampling。
-      - 解释为什么第三份源文档将"安全短历史上下文老虎机"排名为第一推荐方案。
-      - 明确说明什么时候上下文Bandit够用、什么时候需要完整RL。
+      - 用Mermaid画LinUCB的一个决策周期流程图：观测上下文→计算每个臂的得分→选择最高分→观测奖励→更新参数。
 
+      - 提供一个完整的LinUCB数值示例：3维特征向量（gpu_usage_norm, lateness_norm,
+      gpu_freq_norm）、2个候选动作、手算选择过程。
+
+      - 简要介绍Neural Contextual Bandit和Neural Thompson Sampling。
+
+      - 解释为什么第三份源文档将"安全短历史上下文老虎机"排名为第一推荐方案。
+
+      - 明确说明什么时候上下文Bandit够用、什么时候需要完整RL。
   - title: Create 06_Safe_Contextual_Bandit.md
     completed: false
     parallel_group: 1
-    description: |
+    description: >
       Create learn/06_Safe_Contextual_Bandit.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       讲清楚如何为运行时DCVS控制构建一个带安全约束的上下文老虎机。
 
+
       Required content:
+
       - 类比引入：自动驾驶不能撞墙——安全约束就是"哪些动作绝对不能选"的硬边界。
-      - 解释安全过滤器（Safety Filter）、护栏（Guardrail）、动作过滤（Action Filtering）、回退（Rollback）、驻留时间（Dwell Time）、滞回（Hysteresis）。
+
+      - 解释安全过滤器（Safety Filter）、护栏（Guardrail）、动作过滤（Action
+      Filtering）、回退（Rollback）、驻留时间（Dwell Time）、滞回（Hysteresis）。
+
       - FPS护栏逻辑：当FPS连续低于57时，立刻回退到默认安全参数。
+
       - 解释步长限制和最短持有时间如何减少参数振荡。
-      - 用TikZ画一张完整的"安全决策流水线"流程图：
+
+      - 用Mermaid画一张完整的"安全决策流水线"流程图：
         收集窗口统计 → 构建上下文 → 过滤不安全动作 → 对安全动作评分 → 执行动作 → 观测奖励和违规 → 更新模型 → 循环
       - 提供一个规则过滤的worked example：当前FPS=56，哪些动作被过滤掉、为什么。
-      - 提供一个Bandit评分的worked example：3个通过安全过滤的动作，如何用LinUCB选出最优。
-      - 明确关联到 RL_DCVS_Runtime_Adaptive_Independent_Decision_GPT-5.4_2026-04-01_135421.md 中的推荐方案。
 
+      - 提供一个Bandit评分的worked example：3个通过安全过滤的动作，如何用LinUCB选出最优。
+
+      - 明确关联到
+      RL_DCVS_Runtime_Adaptive_Independent_Decision_GPT-5.4_2026-04-01_135421.md
+      中的推荐方案。
   - title: Create 07_Tabular_Q_Learning.md
     completed: false
     parallel_group: 2
-    description: |
+    description: >
       Create learn/07_Tabular_Q_Learning.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       用最简单的方式讲明白Q-Learning——在引入神经网络之前，先用表格搞清楚核心机制。
 
-      Required content:
-      - 类比引入：Q表就像一张"经验评分表"——行是状态、列是动作、格子里是"这个状态下做这个动作有多好"的评分。
-      - 推导Q-Learning更新公式 $Q(s,a) \leftarrow Q(s,a) + \alpha [r + \gamma \max_{a'} Q(s',a') - Q(s,a)]$，逐项解释。
-      - 补充知识框：学习率α的含义——"新经验和旧经验各占多少权重"，用一个简单的加权平均例子。
-      - 用TikZ画Q-Learning的一步更新流程图：当前状态s→选动作a→得到奖励r和新状态s'→查表找max Q(s',a')→更新Q(s,a)。
-      - 使用一个3状态（低负载/中负载/高负载）× 4动作的toy DCVS环境。
-      - 展示5-6步的完整手算Q表更新过程，每一步写出TD误差δ的值、更新前后的Q值。
-      - 解释为什么tabular方法在真实DCVS问题（19维连续状态、192个动作）上不够用。
-      - 提到现有的在线tabular Q-learning调谐器是有用的基线，但不是最终方案。
 
+      Required content:
+
+      - 类比引入：Q表就像一张"经验评分表"——行是状态、列是动作、格子里是"这个状态下做这个动作有多好"的评分。
+
+      - 推导Q-Learning更新公式 $Q(s,a) \leftarrow Q(s,a) + \alpha [r + \gamma
+      \max_{a'} Q(s',a') - Q(s,a)]$，逐项解释。
+
+      - 补充知识框：学习率α的含义——"新经验和旧经验各占多少权重"，用一个简单的加权平均例子。
+
+      - 用Mermaid画Q-Learning的一步更新流程图：当前状态s→选动作a→得到奖励r和新状态s'→查表找max
+      Q(s',a')→更新Q(s,a)。
+
+      - 使用一个3状态（低负载/中负载/高负载）× 4动作的toy DCVS环境。
+
+      - 展示5-6步的完整手算Q表更新过程，每一步写出TD误差δ的值、更新前后的Q值。
+
+      - 解释为什么tabular方法在真实DCVS问题（19维连续状态、192个动作）上不够用。
+
+      - 提到现有的在线tabular Q-learning调谐器是有用的基线，但不是最终方案。
   - title: Create 08_Deep_Q_Networks.md
     completed: false
     parallel_group: 2
-    description: |
+    description: >
       Create learn/08_Deep_Q_Networks.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       展示DQN如何将Q-Learning扩展到大状态空间——用神经网络替代Q表。
 
-      Required content:
-      - 类比引入：Q表在状态太多时像电话簿一样厚得不可能翻——神经网络就是一个"万能插值器"，给它任何状态，它都能输出所有动作的评分。
-      - 补充知识框：什么是神经网络——输入层、隐藏层、输出层、激活函数ReLU，用一个2输入1输出的最小网络做一次前向传播手算。
-      - 解释DQN的三个关键技术：经验回放（Experience Replay）、目标网络（Target Network）、ε-greedy行为策略。
-      - 用TikZ画DQN训练循环流程图：环境交互→存入Replay Buffer→采样mini-batch→计算TD目标→更新Q网络→定期同步目标网络。
-      - 映射DCVS的状态设计到神经网络输入：约19个归一化特征 → 256 → 256 → 192个动作的Q值输出。
-      - 提供一个Bellman目标计算的worked example：给定一个具体的(s, a, r, s')转移，手算y = r + γ max Q_target(s', a')。
-      - 补充知识框：梯度下降的直觉——沿着"坡度最陡"的方向一小步一小步往下走，用一个y=x²的一维例子。
-      - 解释为什么朴素DQN在离线DCVS学习中仍有安全和数据分布问题。
 
+      Required content:
+
+      - 类比引入：Q表在状态太多时像电话簿一样厚得不可能翻——神经网络就是一个"万能插值器"，给它任何状态，它都能输出所有动作的评分。
+
+      - 补充知识框：什么是神经网络——输入层、隐藏层、输出层、激活函数ReLU，用一个2输入1输出的最小网络做一次前向传播手算。
+
+      - 解释DQN的三个关键技术：经验回放（Experience Replay）、目标网络（Target Network）、ε-greedy行为策略。
+
+      - 用Mermaid画DQN训练循环流程图：环境交互→存入Replay
+      Buffer→采样mini-batch→计算TD目标→更新Q网络→定期同步目标网络。
+
+      - 映射DCVS的状态设计到神经网络输入：约19个归一化特征 → 256 → 256 → 192个动作的Q值输出。
+
+      - 提供一个Bellman目标计算的worked example：给定一个具体的(s, a, r, s')转移，手算y = r + γ max
+      Q_target(s', a')。
+
+      - 补充知识框：梯度下降的直觉——沿着"坡度最陡"的方向一小步一小步往下走，用一个y=x²的一维例子。
+
+      - 解释为什么朴素DQN在离线DCVS学习中仍有安全和数据分布问题。
   - title: Create 09_Double_Dueling_DQN.md
     completed: false
     parallel_group: 2
-    description: |
+    description: >
       Create learn/09_Double_Dueling_DQN.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       解释DQN的两个重要改进及其在DCVS场景下的意义。
 
+
       Required content:
+
       - Double DQN：
         - 类比引入：考试时总觉得自己考得比实际好——Q网络也倾向于"过度乐观"，Double DQN是"让另一个人帮你估分"。
         - 解释过估计偏差（Overestimation Bias），用一个3动作的小例子展示max操作如何引入系统性高估。
@@ -202,30 +296,41 @@ tasks:
       - Dueling DQN：
         - 类比引入：有些状态不管你怎么选都差不多好（例如GPU空闲时），有些状态下动作选择至关重要（GPU满载时）——Dueling把"状态本身好不好" V(s) 和"这个动作比平均好多少" A(s,a) 拆开学。
         - 推导 Q(s,a) = V(s) + A(s,a) - mean(A)。
-        - 用TikZ画Dueling网络结构图：共享特征层 → 分叉为V流和A流 → 合并输出Q值。
+        - 用Mermaid画Dueling网络结构图：共享特征层 → 分叉为V流和A流 → 合并输出Q值。
       - 用DCVS例子解释什么时候状态质量主导、什么时候需要精细的动作区分。
-      - 明确指出：这些改进提升了价值学习质量，但本身没有解决离线RL的分布偏移问题。
 
+      - 明确指出：这些改进提升了价值学习质量，但本身没有解决离线RL的分布偏移问题。
   - title: Create 10_Policy_Gradient_REINFORCE.md
     completed: false
     parallel_group: 3
-    description: |
+    description: >
       Create learn/10_Policy_Gradient_REINFORCE.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       介绍策略梯度方法，为后续的Actor-Critic和PPO打基础。
 
-      Required content:
-      - 类比引入：值方法是"先给每个动作打分，再选最高分"，策略梯度是"直接调整选择各动作的概率——好动作多选、差动作少选"。
-      - 补充知识框：什么是概率分布上的梯度——用一个简单的softmax（2个选项）手算例子展示"调整参数如何改变概率"。
-      - 推导策略梯度定理的核心思想（不需要证明全部细节，但要把 $\nabla_\theta J(\theta) = \mathbb{E}[\nabla_\theta \log \pi_\theta(a|s) \cdot G_t]$ 解释清楚）。
-      - 用TikZ画REINFORCE算法流程图：采样一条完整轨迹→计算每步回报→对每步做梯度更新→重采样。
-      - 提供一个小型数值示例：2个动作、softmax策略，手算一次log-probability加权更新。
-      - 解释方差问题以及为什么要引入baseline。
-      - 联系DCVS场景：解释为什么纯REINFORCE不是本项目的首选（需要完整轨迹、方差大、样本效率低）。
 
+      Required content:
+
+      - 类比引入：值方法是"先给每个动作打分，再选最高分"，策略梯度是"直接调整选择各动作的概率——好动作多选、差动作少选"。
+
+      - 补充知识框：什么是概率分布上的梯度——用一个简单的softmax（2个选项）手算例子展示"调整参数如何改变概率"。
+
+      - 推导策略梯度定理的核心思想（不需要证明全部细节，但要把 $\nabla_\theta J(\theta) =
+      \mathbb{E}[\nabla_\theta \log \pi_\theta(a|s) \cdot G_t]$ 解释清楚）。
+
+      - 用Mermaid画REINFORCE算法流程图：采样一条完整轨迹→计算每步回报→对每步做梯度更新→重采样。
+
+      - 提供一个小型数值示例：2个动作、softmax策略，手算一次log-probability加权更新。
+
+      - 解释方差问题以及为什么要引入baseline。
+
+      - 联系DCVS场景：解释为什么纯REINFORCE不是本项目的首选（需要完整轨迹、方差大、样本效率低）。
   - title: Create 11_Actor_Critic_A2C.md
     completed: false
     parallel_group: 3
@@ -242,10 +347,9 @@ tasks:
       - 定义Actor、Critic、价值函数V(s)、Q函数Q(s,a)、优势函数A(s,a)。
       - 推导 A(s,a) = Q(s,a) - V(s)，解释为什么优势函数能减少方差。
       - 补充知识框：TD误差（Temporal Difference Error）的含义——"预期"和"实际+下一步预期"之间的差距。
-      - 用TikZ画Actor-Critic的交互流程图：Actor输出动作→环境返回奖励和新状态→Critic计算TD误差→Actor和Critic各自更新。
+      - 用Mermaid画Actor-Critic的交互流程图：Actor输出动作→环境返回奖励和新状态→Critic计算TD误差→Actor和Critic各自更新。
       - 提供一个toy DCVS转移的worked example：给定一个(s, a, r, s')，手算Critic的TD误差、Actor的梯度更新方向。
       - 简要介绍A2C（Advantage Actor-Critic）作为PPO和SAC之前的标准参考点。
-
   - title: Create 12_PPO.md
     completed: false
     parallel_group: 3
@@ -263,23 +367,27 @@ tasks:
       - 推导PPO的裁剪代理目标（Clipped Surrogate Objective）：
         $L^{CLIP}(\theta) = \hat{\mathbb{E}}_t[\min(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t)]$
         逐项解释 $r_t(\theta)$、$\hat{A}_t$、clip操作的含义。
-      - 用TikZ画PPO的裁剪效果示意图：横轴是概率比r，纵轴是目标值，标出裁剪区间。
+      - 用Mermaid画PPO的裁剪效果示意图：横轴是概率比r，纵轴是目标值，标出裁剪区间。
       - 补充知识框：概率比 $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$ 的含义——"新策略对这个动作的偏好相对于旧策略变化了多少"。
       - 提供一个紧凑的数值裁剪示例：给定r=1.3, ε=0.2, A=+5和A=-3两种情况，分别算裁剪后的目标值。
       - 解释为什么源文档将PPO排名很低：在线探索风险（真机FPS崩溃）、on-policy样本效率差（需要10^5-10^6步）、无法充分利用离线日志数据。
-
   - title: Create 13_SAC_TD3.md
     completed: false
     parallel_group: 4
-    description: |
+    description: >
       Create learn/13_SAC_TD3.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       讲解现代连续控制Actor-Critic方法的基础，以及为什么动作空间设计对算法选择至关重要。
 
+
       Required content:
+
       - TD3（Twin Delayed DDPG）：
         - 类比引入：找两个评委打分取低分（twin critics），防止"内评过高"——和Double DQN类似但用在连续动作空间。
         - 解释双Critic、延迟Actor更新、目标策略平滑。
@@ -288,32 +396,49 @@ tasks:
         - 补充知识框：信息熵（Entropy）的含义——"不确定性的度量"，用一个公平/偏斜硬币的例子。
         - 解释SAC的目标：$\max_\pi \mathbb{E}[\sum_t r_t + \alpha H(\pi(\cdot|s_t))]$。
       - 明确这些都是主要面向连续动作空间的方法。
-      - 用TikZ画一张"离散动作编码 vs 连续残差控制"的对比示意图。
-      - 用一个小例子对比：离散编码 action_id=72 对应 {fsd:10, pd:90, pu:85, sf:0} vs 连续残差 Δfsd=+2.5, Δpd=-1.3。
-      - 解释为什么将TD3+BC应用于本项目需要把离散DCVS动作重构为连续参数控制——当前重构成本较高。
 
+      - 用Mermaid画一张"离散动作编码 vs 连续残差控制"的对比示意图。
+
+      - 用一个小例子对比：离散编码 action_id=72 对应 {fsd:10, pd:90, pu:85, sf:0} vs 连续残差
+      Δfsd=+2.5, Δpd=-1.3。
+
+      - 解释为什么将TD3+BC应用于本项目需要把离散DCVS动作重构为连续参数控制——当前重构成本较高。
   - title: Create 14_Offline_RL_Fundamentals.md
     completed: false
     parallel_group: 4
-    description: |
+    description: >
       Create learn/14_Offline_RL_Fundamentals.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       解释为什么离线RL是本项目的核心，以及离线RL的核心难点。
 
-      Required content:
-      - 类比引入：你不能让一个新手司机直接上高速去"探索"——离线RL就是"先看老司机的行车记录仪学习、再上路"。
-      - 正式定义离线RL（Offline RL / Batch RL）。
-      - 解释行为策略（Behavior Policy）、日志数据集（Logged Dataset）、分布偏移（Distribution Shift）、分布外动作（Out-of-Distribution Actions / OOD）、外推误差（Extrapolation Error）。
-      - 用TikZ画一张"分布偏移"概念图：数据集覆盖的(s,a)区域 vs 学到的策略想访问的(s,a)区域，两个区域的不匹配导致外推误差。
-      - 解释为什么真机探索昂贵且危险：每次实验需30秒+真实手机运行，FPS掉帧影响用户体验。
-      - 补充知识框：什么是概率分布——用直方图的直觉加一个投骰子的例子。
-      - 解释当前数据集的限制：只覆盖了192个动作中的约30个，而且每条轨迹内动作是固定不变的。
-      - 关键数值示例：展示一个模型如何错误地给未见过的action高Q值——假设Q网络见过action 72的平均奖励是+8，但从未见过action 150，由于神经网络外推，可能给出Q=+15的虚高值。
-      - 为CQL和IQL做铺垫："那怎么解决外推误差？"——引出保守估计和隐式学习的思路。
 
+      Required content:
+
+      - 类比引入：你不能让一个新手司机直接上高速去"探索"——离线RL就是"先看老司机的行车记录仪学习、再上路"。
+
+      - 正式定义离线RL（Offline RL / Batch RL）。
+
+      - 解释行为策略（Behavior Policy）、日志数据集（Logged Dataset）、分布偏移（Distribution
+      Shift）、分布外动作（Out-of-Distribution Actions / OOD）、外推误差（Extrapolation Error）。
+
+      - 用Mermaid画一张"分布偏移"概念图：数据集覆盖的(s,a)区域 vs 学到的策略想访问的(s,a)区域，两个区域的不匹配导致外推误差。
+
+      - 解释为什么真机探索昂贵且危险：每次实验需30秒+真实手机运行，FPS掉帧影响用户体验。
+
+      - 补充知识框：什么是概率分布——用直方图的直觉加一个投骰子的例子。
+
+      - 解释当前数据集的限制：只覆盖了192个动作中的约30个，而且每条轨迹内动作是固定不变的。
+
+      - 关键数值示例：展示一个模型如何错误地给未见过的action高Q值——假设Q网络见过action 72的平均奖励是+8，但从未见过action
+      150，由于神经网络外推，可能给出Q=+15的虚高值。
+
+      - 为CQL和IQL做铺垫："那怎么解决外推误差？"——引出保守估计和隐式学习的思路。
   - title: Create 15_CQL.md
     completed: false
     parallel_group: 4
@@ -333,37 +458,49 @@ tasks:
       - 补充知识框：log-sum-exp是什么——"对所有动作的Q值的一种加权平均，偏向于大值"，用3个Q值的数值例子手算 log(exp(2)+exp(5)+exp(1))。
       - 补充知识框：行为策略 $\hat{\pi}_\beta$ 是什么——"数据中实际采用过的策略"。
       - 解释α的作用——太小则不够保守（回到标准DQN的问题），太大则过度保守（所有动作的Q值都被压低，策略退化）。
-      - 用TikZ画CQL的训练流程图：从replay buffer采样→计算Bellman目标→计算保守正则项（push down all, push up in-data）→总损失→更新Q网络。
+      - 用Mermaid画CQL的训练流程图：从replay buffer采样→计算Bellman目标→计算保守正则项（push down all, push up in-data）→总损失→更新Q网络。
       - 关键worked example：假设有3个动作（action A在数据中出现过、B在数据中出现过、C从未出现），给出初始Q值，手算一步CQL更新后各动作Q值的变化方向，展示C的Q值被压低。
       - 连接到192个DCVS离散动作：解释为什么CQL天然适合离散动作空间，argmax Q(s,a) 的推理延迟 < 1ms。
       - 讨论CQL在稀疏覆盖（30/192）下的优势和局限。
       - 解释为什么第一份源文档将离散CQL排为第一推荐。
-
   - title: Create 16_IQL.md
     completed: false
     parallel_group: 4
-    description: |
+    description: >
       Create learn/16_IQL.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       严谨但易读地讲解Implicit Q-Learning（IQL）——源文档中强调的另一个核心离线RL算法。
 
+
       Required content:
-      - 类比引入：CQL是"主动压低不确定的评分"，IQL是"压根不去评价没见过的东西"——隐式地避开OOD动作，就像只看菜单上有的菜而从不尝试菜单外的。
+
+      -
+      类比引入：CQL是"主动压低不确定的评分"，IQL是"压根不去评价没见过的东西"——隐式地避开OOD动作，就像只看菜单上有的菜而从不尝试菜单外的。
+
       - 解释IQL的动机以及它和CQL显式保守惩罚的本质区别。
+
       - 解释三网络结构：Q网络、V网络、策略网络(π)，各自的作用。
+
       - Expectile回归：
         - 补充知识框：什么是"分位数"和"expectile"——"普通均值对所有误差一视同仁，expectile对'比均值大的误差'和'比均值小的误差'赋予不同权重"，用5个数的集合{2,3,5,8,12}手算τ=0.7的expectile。
         - 推导Expectile损失函数 $L_\tau^2(u) = |\tau - \mathbf{1}(u < 0)| \cdot u^2$。
-        - 用TikZ画expectile损失函数的形状图：横轴是u，纵轴是loss，左右两边斜率不同。
-      - V网络的训练目标 $\mathcal{L}_V = \mathbb{E}_{(s,a) \sim D}[L_\tau^2(Q(s,a) - V(s))]$——解释τ如何控制V在"偏乐观"和"偏保守"之间选择。
-      - 关键worked example：给定3个(s,a)对的Q值和当前V(s)估计，手算expectile loss的每一步和V(s)的梯度方向。
-      - 解释为什么IQL在稀疏数据覆盖（30/192）下特别鲁棒：它永远不评估数据中不存在的动作。
-      - 解释IQL的offline→online过渡为什么更平滑。
-      - 公平对比IQL vs CQL在本项目中的适用场景：CQL更直接面向离散动作但可能过度保守；IQL更稳健但需要三个网络。
+        - 用Mermaid画expectile损失函数的形状图：横轴是u，纵轴是loss，左右两边斜率不同。
+      - V网络的训练目标 $\mathcal{L}_V = \mathbb{E}_{(s,a) \sim D}[L_\tau^2(Q(s,a) -
+      V(s))]$——解释τ如何控制V在"偏乐观"和"偏保守"之间选择。
 
+      - 关键worked example：给定3个(s,a)对的Q值和当前V(s)估计，手算expectile loss的每一步和V(s)的梯度方向。
+
+      - 解释为什么IQL在稀疏数据覆盖（30/192）下特别鲁棒：它永远不评估数据中不存在的动作。
+
+      - 解释IQL的offline→online过渡为什么更平滑。
+
+      - 公平对比IQL vs CQL在本项目中的适用场景：CQL更直接面向离散动作但可能过度保守；IQL更稳健但需要三个网络。
   - title: Create 17_Decision_Transformer.md
     completed: false
     parallel_group: 4
@@ -379,81 +516,110 @@ tasks:
       - 类比引入：如果把RL看成"写作文"——给你一个开头（目标回报）和上下文（历史状态和动作），让Transformer"续写"出最好的下一个动作。
       - 补充知识框：Transformer是什么——自注意力（Self-Attention）的直觉，"每个词可以关注句子中的其他词来理解上下文"，用一个3个token的小例子说明attention权重。
       - 解释输入token结构：目标回报R̂_t、状态s_t、动作a_t 三种token交替排列。
-      - 用TikZ画Decision Transformer的输入序列和预测流程图。
+      - 用Mermaid画Decision Transformer的输入序列和预测流程图。
       - 解释为什么Transformer在丰富轨迹数据下很有吸引力。
       - 关键论述：为什么当前DCVS数据集（约30轮、每轮固定动作）大概率不足以支撑Decision Transformer——数据数量、多样性、轨迹内动作切换全都不够。
       - 对比部署成本：DT推理比MLP Q网络慢10-50倍，在需要<1ms响应的场景下不够实用。
       - 定位：DT是积累1000+轮多场景数据后的第二代或第三代方案。
-
   - title: Create 18_Reward_Design.md
     completed: false
-    description: |
+    description: >
       Create learn/18_Reward_Design.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       用数学上精确、实践上接地气的方式讲解DCVS问题的奖励函数设计。
 
+
       Required content:
+
       - 类比引入：奖励函数就是"考试评分标准"——如果FPS是必答题、频率和功耗是加分项，怎么设计评分才能让学生（智能体）既保证及格又尽量多拿加分？
+
       - 呈现源文档中的三段式奖励设计：fps组件、频率组件、功耗组件。
+
       - 清晰写出每个公式并解释直觉：
         - FPS组件：分段函数，fps<57 → 重罚(-10×差值)，57≤fps<59 → 中罚，fps≥59 → 奖励+20
         - 频率组件：(900 - gpu_freq_mhz) / 80
         - 功耗组件：(6000 - power_ma) / 400
-      - 用TikZ画FPS组件的分段函数图：横轴是FPS，纵轴是奖励值，标注57和59两个拐点。
-      - worked example 1：FPS=60, GPU频率=500MHz, 功耗=4000mA → 手算reward每个组件和总值。
-      - worked example 2：FPS=55, GPU频率=282MHz, 功耗=2000mA → 手算reward，展示FPS惩罚如何主导总奖励。
-      - 讨论奖励缩放、冲突目标、以及为什么糟糕的奖励设计会扭曲学习。
-      - 解释在线bandit和离线RL训练中奖励设计的差异。
+      - 用Mermaid画FPS组件的分段函数图：横轴是FPS，纵轴是奖励值，标注57和59两个拐点。
 
+      - worked example 1：FPS=60, GPU频率=500MHz, 功耗=4000mA → 手算reward每个组件和总值。
+
+      - worked example 2：FPS=55, GPU频率=282MHz, 功耗=2000mA →
+      手算reward，展示FPS惩罚如何主导总奖励。
+
+      - 讨论奖励缩放、冲突目标、以及为什么糟糕的奖励设计会扭曲学习。
+
+      - 解释在线bandit和离线RL训练中奖励设计的差异。
   - title: Create 19_State_Action_Space_Design.md
     completed: false
-    description: |
+    description: >
       Create learn/19_State_Action_Space_Design.md.
 
+
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       讲解本项目的状态空间和动作空间应该如何设计。
 
+
       Required content:
+
       - 类比引入：状态就是"仪表盘上你能看到的所有指标"，动作就是"你手里能拧的所有旋钮"——选对指标、编好旋钮是成功的一半。
+
       - 用表格列出所有候选状态特征（19个归一化特征），分类为GPU特征、帧特征、CPU特征、功耗特征，解释为什么选这些。
+
       - 解释归一化为什么重要——不同特征量纲差异巨大（频率是MHz，利用率是百分比，功耗是mW）。
+
       - 补充知识框：特征归一化——min-max归一化和z-score归一化的区别和手算示例。
+
       - 讨论短历史特征（2-3个窗口的趋势统计）和场景标签。
+
       - 解释四个控制参数及离散编码方式 6×4×4×2=192：
-        - 用TikZ画一张动作编码映射表的示意图：四个参数的可选值 → 组合后的action_id。
+        - 用Mermaid画一张动作编码映射表的示意图：四个参数的可选值 → 组合后的action_id。
         - 具体编码示例：first_step_down=10, penalty_down=90, penalty_up=85, strict_frame=0 → action_id=72的计算过程。
       - 解释动作空间设计如何影响算法选择：离散→CQL/Bandit/DQN天然适配；连续→TD3+BC/SAC更合适。
-      - 讨论什么时候以及为什么从离散切换到连续残差控制会改变推荐算法排序。
 
+      - 讨论什么时候以及为什么从离散切换到连续残差控制会改变推荐算法排序。
   - title: Create 20_Algorithm_Comparison.md
     completed: false
-    description: |
+    description: >
       Create learn/20_Algorithm_Comparison.md.
+
 
       【全局要求】同01号任务的全局要求。
 
+
       Goal:
+
       综合三份源文档，写一份以决策为导向的算法对比分析。
 
+
       Required content:
-      - 构建一张完整的对比表，覆盖至少：安全上下文Bandit、上下文贝叶斯优化、离散CQL、IQL、TD3+BC、Decision Transformer、Tabular Q-learning/DQN、PPO。
+
+      - 构建一张完整的对比表，覆盖至少：安全上下文Bandit、上下文贝叶斯优化、离散CQL、IQL、TD3+BC、Decision
+      Transformer、Tabular Q-learning/DQN、PPO。
+
       - 对比维度：问题适配度、安全性、离线数据利用率、在线适应性、实现复杂度、部署延迟、数据量需求。
-      - 用TikZ画一张"算法选择决策树"：从"你的问题属于什么类型？"开始，逐步引导到推荐算法。
+
+      - 用Mermaid画一张"算法选择决策树"：从"你的问题属于什么类型？"开始，逐步引导到推荐算法。
+
       - 解释为什么三份源文档的排名不完全一致——明确指出假设差异：
         - 短期上下文决策 vs 中等时间依赖MDP
         - 离线优先 vs 在线优先
         - 当前离散动作空间 vs 未来可能的连续控制
       - 用一个表格直接对比三份文档的Top-3推荐和各自的核心理由。
+
       - 最终给出实践建议：
         - 第一代方案（现在就能做）：离散CQL 或 安全上下文Bandit
         - 第二代方案（数据积累后）：IQL + online fine-tuning
         - 远期方案（大量数据后）：Decision Transformer 或 连续动作 + contextual BO
-
   - title: Create 21_Implementation_Roadmap.md
     completed: false
     description: |
@@ -465,7 +631,7 @@ tasks:
       把前面所有学习内容转化为可执行的实践路线图。
 
       Required content:
-      - 用TikZ画一张端到端的实施流程图：数据收集改进 → 数据预处理 → 离线训练 → 离线评估 → 真机保守测试 → 部署 → 在线微调。
+      - 用Mermaid画一张端到端的实施流程图：数据收集改进 → 数据预处理 → 离线训练 → 离线评估 → 真机保守测试 → 部署 → 在线微调。
       - 数据收集改进：解释如何修改collect_qgtf_dataset.py，使每轮benchmark中途切换DCVS参数（每5-10秒切换一次），将动作覆盖率从30/192提升到64+/192。
       - 离线训练数据构建：如何从CSV构建(s_t, a_t, r_t, s_{t+1}, done)转移五元组。
       - 评估策略：离线策略评估（OPE）、保守真机测试（A/B测试）、回退护栏。

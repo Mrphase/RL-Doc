@@ -40,12 +40,14 @@ You must synthesize the learning materials from these sources:
 ## 数学公式与可视化要求
 
 - 所有数学公式使用 LaTeX 格式：行内用 `$...$`，独立公式块用 `$$...$$`。
-- **对于复杂的计算流程、算法流程、公式推导过程和数值计算步骤，必须用 LaTeX + TikZ 绘制流程图或示意图**，以 ```` ```latex ```` 代码块嵌入 Markdown 文件中，让读者可以用任意 LaTeX 编译器渲染查看。
-- TikZ 图的要求：
+- **对于复杂的计算流程、算法流程、公式推导过程和数值计算步骤，必须用 Mermaid 绘制流程图或示意图**，以 ` ```mermaid ` 代码块嵌入 Markdown 文件中，可直接在 GitHub / VS Code / Typora 等 Markdown 预览器中渲染查看。**禁止使用 TikZ**。
+- Mermaid 图的要求：
+  - 使用 `flowchart TD`（从上到下）或 `flowchart LR`（从左到右）布局。
   - 每个节点和箭头都要有中文标注。
-  - 用不同颜色区分输入/处理/输出节点。
+  - 用 `classDef` 和 `class` 语法为输入/处理/输出节点分配不同颜色（蓝色=输入、橙色=处理、绿色=输出）。
   - 图的复杂度要适中：一张图不超过15个节点，超过的拆成多张。
   - 在图之前用一段文字说明"这张图展示了什么"，在图之后用一段文字解读"图中的关键路径/要点"。
+  - 不要在 Mermaid 节点文本中使用 LaTeX 数学公式（Mermaid 不支持），用纯文本或 Unicode 符号代替。
 - 数值计算示例要写出**每一步的中间结果**，不要跳步，让读者能用笔跟着算。
 
 ## 概念讲解四步法
@@ -53,7 +55,7 @@ You must synthesize the learning materials from these sources:
 对于每一个新概念，必须遵循以下顺序：
 1. **直觉类比**：用日常生活或工程场景的例子解释这个概念在干什么（例如把Q值类比成"经验评分表"）。
 2. **正式定义**：给出数学或技术上的严格定义。
-3. **公式推导 + TikZ 图**：如果涉及公式推导，画一张 TikZ 流程图展示推导的逻辑链路；如果是算法流程，画算法流程图。
+3. **公式推导 + Mermaid 图**：如果涉及公式推导，画一张 Mermaid 流程图展示推导的逻辑链路；如果是算法流程，画算法流程图。禁止使用 TikZ。
 4. **DCVS 实际数值计算示例**：用项目中的真实数据范围（GPU频率282-710 MHz，FPS目标59-60，功耗0-8000 mW，192个离散动作等）做一个完整的带数字的计算过程。
 
 ## Writing Requirements
@@ -79,4 +81,4 @@ You must synthesize the learning materials from these sources:
 - Prefer concrete state, action, reward, and transition examples from the DCVS problem.
 - If a concept is abstract, add a small table or step-by-step numeric example.
 - Keep the learning order progressive from easy to hard.
-- Every document with algorithms must contain at least one TikZ diagram (algorithm flowchart, computation graph, or concept map).
+- Every document with algorithms must contain at least one Mermaid diagram (algorithm flowchart, computation graph, or concept map). Do NOT use TikZ.

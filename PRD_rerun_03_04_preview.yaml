@@ -1,0 +1,123 @@
+tasks:
+  - title: Rebuild 03_Exploration_vs_Exploitation.md for Markdown preview
+    completed: true
+    description: >
+      Rewrite the existing file learn/03_Exploration_vs_Exploitation.md in
+      place.
+
+
+      【本次重建的直接目标】
+
+      这次重建不是因为内容方向错了，而是因为当前文档里的图写成了 ```latex + TikZ 代码块，
+
+      在 VS Code Markdown Preview 里只会显示源码，不会直接渲染成图。
+
+
+      【本次任务覆盖旧图表规则】
+
+      - 这次主文正文里的图，不要再用 TikZ 代码块作为唯一展示形式。
+
+      - 主文中所有需要“直接看见图形”的图，必须使用 ```mermaid 代码块，让 VS Code Markdown Preview 可以直接显示。
+
+      - 数学公式继续使用 $...$ 和 $$...$$，因为 VS Code 内建预览支持 KaTeX。
+
+      - Mermaid 只使用兼容性更稳的语法：flowchart / graph TD / stateDiagram /
+      sequenceDiagram。
+
+      - 不要使用 Mermaid 的实验性图表类型。
+
+      - 不要在 Mermaid 节点文字里写 LaTeX 宏，例如 \mu、\hat{Q}、\epsilon；公式解释放在图前后单独写。
+
+      - 如果你认为保留 TikZ 源码有价值，可以在“附录：TikZ源码（可选）”里额外附上一份，但正文必须在不看 TikZ 的情况下也能完整读懂。
+
+      - 直接覆盖原文件，不要创建新文件名。
+
+
+      【正文内容仍然必须满足】
+
+      - 全部用中文，口语化、通俗易懂，像导师面对面讲解。
+
+      - 文档开头保留“前置阅读”，文档结尾保留“关键收获”。
+
+      - 新概念继续按四步法讲：①直觉类比 ②正式定义 ③公式推导 ④DCVS数值示例。
+
+      - 用“美食街选餐厅”类比引入探索与利用。
+
+      - 正式定义 Exploration 和 Exploitation。
+
+      - 介绍 ε-greedy、乐观初始化、Softmax 探索、UCB 直觉。
+
+      - 用 Mermaid 画一张“探索-利用权衡”的决策树图。
+
+      - 重点强调真机安全探索：糟糕探索会直接导致 FPS 暴跌、用户体验崩溃。
+
+      - 提供 ε=0.1 时、192 个 DCVS 动作下的概率分布数值示例。
+
+      - 提供一个 confidence-bound 风格的数值例子：两个候选动作的平均奖励和尝试次数，如何选择。
+
+
+      【额外格式要求】
+
+      - 图前先写“这张图展示了什么”，图后再写“图里的关键路径/要点”。
+
+      - 尽量避免超宽图，保证普通编辑器宽度下也容易阅读。
+  - title: Rebuild 04_Multi_Armed_Bandits.md for Markdown preview
+    completed: true
+    description: >
+      Rewrite the existing file learn/04_Multi_Armed_Bandits.md in place.
+
+
+      【本次重建的直接目标】
+
+      修复 Markdown 预览体验。当前版本把核心图写成 ```latex + TikZ 代码块，
+
+      在 VS Code Markdown Preview 中只会显示源码，读者无法直接看到图。
+
+
+      【本次任务覆盖旧图表规则】
+
+      - 主文里的图必须使用 ```mermaid 代码块直接展示，不要再把主图只写成 TikZ 代码块。
+
+      - 数学公式继续使用 $...$ 和 $$...$$。
+
+      - Mermaid 只使用兼容性稳定的 flowchart / graph TD / stateDiagram / sequenceDiagram。
+
+      - 不要使用实验性图表类型，不要依赖扩展插件才可见的语法。
+
+      - Mermaid 节点里不要写 LaTeX 宏；公式单独在图外说明。
+
+      - 如果确实需要保留 TikZ，请放在“附录：TikZ源码（可选）”，但正文必须在 VS Code Markdown Preview
+      中就能直接读懂。
+
+      - 直接覆盖原文件，不要创建新文件名。
+
+
+      【正文内容仍然必须满足】
+
+      - 全部用中文，口语化、通俗易懂。
+
+      - 开头保留“前置阅读”，结尾保留“关键收获”。
+
+      - 先用赌场老虎机类比，再引到 192 个 DCVS 动作。
+
+      - 正式定义 Bandit、即时奖励、总奖励、累积遗憾。
+
+      - 解释样本均值与大数定律，并保留补充知识框。
+
+      - 解释 UCB 公式每一项的含义。
+
+      - 原先“均值 + 置信区间柱状图”的那张图，改写成 Markdown 预览友好的 Mermaid 版本。
+        可以改成“先算样本均值 → 再算探索奖金 → 最后比较 UCB 分数”的流程图，
+        或者“4 个动作各自得分计算后汇总比较”的流程图；不要硬画实验性柱状图。
+      - 解释 Thompson Sampling，并保留一个 Beta 分布后验直觉例子。
+
+      - 用 3 到 4 个候选 action_id 做完整 worked example：观测奖励序列 → 更新估计 → 选择下一个动作。
+
+      - 解释 plain bandit 的局限，并自然引出 contextual bandit。
+
+
+      【额外格式要求】
+
+      - 图前先写“这张图展示了什么”，图后再写“图里的关键路径/要点”。
+
+      - 尽量避免超宽图，保证普通编辑器宽度下也容易阅读。

@@ -20,7 +20,7 @@ rules:
   - "所有文档必须用中文书写，语言要通俗易懂、口语化，避免生硬的学术翻译腔"
   - "首次出现的专业术语必须同时给出英文原文，格式为：中文名（English Term），后续可只用中文"
   - "All mathematical formulas MUST use LaTeX format wrapped in $$ for block equations and $ for inline"
-  - "对于复杂的计算流程、算法流程、公式推导过程和数值计算步骤，必须用 LaTeX + TikZ 绘制流程图或示意图，以 ```latex 代码块嵌入 Markdown 文件中，让读者可以用任意 LaTeX 编译器渲染查看"
+  - "对于复杂的计算流程、算法流程、公式推导过程和数值计算步骤，必须用 Mermaid 绘制流程图或示意图，以 ```mermaid 代码块嵌入 Markdown 文件中，可直接在 GitHub / VS Code / Typora 等 Markdown 预览器中渲染。禁止使用 TikZ"
   - "目标读者是线性代数只有入门水平的人，遇到矩阵运算、概率论、微积分等前置知识时，必须插入一个'补充知识'框（用 blockquote > 格式），用 1-2 段话解释清楚该前置知识，不要假设读者已经掌握"
   - "Every document MUST include at least one concrete numerical computation example using real DCVS data"
   - "数值计算示例要写出每一步的中间结果，不要跳步，让读者能用笔跟着算"
@@ -30,7 +30,7 @@ rules:
   - "Each document should be self-contained and readable independently"
   - "Include a '前置阅读' section at the top of each document listing which previous documents should be read first"
   - "Include a '关键收获' summary section at the end of each document"
-  - "对于每一个新概念，遵循四步法：① 直觉类比（用日常生活例子解释）→ ② 正式定义 → ③ 公式推导（配TikZ图）→ ④ DCVS实际数值计算示例"
+  - "对于每一个新概念，遵循四步法：① 直觉类比（用日常生活例子解释）→ ② 正式定义 → ③ 公式推导（配Mermaid图）→ ④ DCVS实际数值计算示例"
   - "文档中的图表说明文字也必须用中文"
 
 # Boundaries - files/folders the AI should not modify
