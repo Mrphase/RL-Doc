@@ -95,11 +95,11 @@ $$
 $$
 
 $$
-\tilde{f}^{gpu}_t = \frac{gpu\_freq_t - 282}{710 - 282}
+\tilde{f}^{gpu}_t = \frac{\mathrm{gpu\_freq}_t - 282}{710 - 282}
 $$
 
 $$
-\tilde{u}_t = \frac{gpu\_usage_t}{100}
+\tilde{u}_t = \frac{\mathrm{gpu\_usage}_t}{100}
 $$
 
 $$
