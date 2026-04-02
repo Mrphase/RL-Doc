@@ -270,7 +270,7 @@ flowchart TD
     S --> T["目标网络输出 192 个动作分数"]
     O --> G["在线网络挑出最高分动作 a*"]
     G --> E["目标网络只评估 a* 的分数"]
-    E --> Y["计算目标 y = r + γQ_target(s', a*)"]
+    E --> Y["计算目标 y = r + γ目标 Q 网络(s', a*)"]
     Y --> U["更新当前Q网络参数"]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
@@ -508,7 +508,7 @@ $$
 
 ```mermaid
 flowchart TD
-    I["输入状态特征<br/>例如 FPS、gpu_usage、gpu_freq、power 等"] --> F["共享特征层<br/>19维输入 → 256 → 256"]
+    I["输入状态特征<br/>例如 FPS、GPU 利用率、GPU 频率、power 等"] --> F["共享特征层<br/>19维输入 → 256 → 256"]
     F --> V["价值流输出 V(s)"]
     F --> A["优势流输出 192 个 A(s,a)"]
     A --> M["计算 192 个优势的平均值"]

@@ -258,15 +258,15 @@ $$
 其中：
 
 $$
-u_t = \frac{\text{gpu\_usage\_pct}_t}{100}
+u_t = \frac{\mathrm{gpu\_usage\_pct}_t}{100}
 $$
 
 $$
-l_t = \frac{\min(\max(\text{lateness\_ms}_t, 0), 5)}{5}
+l_t = \frac{\min(\max(\mathrm{lateness\_ms}_t, 0), 5)}{5}
 $$
 
 $$
-f_t = \frac{\text{gpu\_freq\_mhz}_t - 282}{710 - 282}
+f_t = \frac{\mathrm{gpu\_freq\_mhz}_t - 282}{710 - 282}
 $$
 
 然后把最近两个窗口、上一动作和驻留时间一起拼起来：
@@ -320,7 +320,7 @@ flowchart TD
     A[输入: 当前窗口指标] --> B[处理: 计算当前窗口归一化特征]
     C[输入: 上一窗口指标] --> D[处理: 计算上一窗口归一化特征]
     E[输入: 上一动作和驻留时间] --> F[处理: 做动作和时间归一化]
-    B --> G[处理: 拼成短历史上下文 x_t]
+    B --> G[处理: 拼成短历史上下文 上下文向量]
     D --> G
     F --> G
     G --> H[输出: 交给安全 bandit 打分]
@@ -509,7 +509,7 @@ $$
 
 ```mermaid
 flowchart TD
-    A[输入: 短历史上下文 x_t] --> B{处理: 上一窗口是否违规}
+    A[输入: 短历史上下文 上下文向量] --> B{处理: 上一窗口是否违规}
     B -->|是| C[输出: 直接回退到保守动作]
     B -->|否| D[处理: 先形成安全动作集合]
     D --> E[处理: 对安全动作做 Thompson 采样]

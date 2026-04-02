@@ -106,11 +106,11 @@ fps\_component =
 $$
 
 $$
-freq\_component = \frac{900 - gpu\_freq\_{mhz}}{80}
+freq\_component = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-power\_component = \frac{6000 - power\_{mw}}{400}
+power\_component = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 假设当前系统都在同一个初始状态附近，候选有两种策略：

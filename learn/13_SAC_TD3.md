@@ -62,7 +62,7 @@ $$
 如果把四个参数的索引分别记成 $i_{fsd}, i_{pd}, i_{pu}, i_{sf}$，那么一个离散动作编号可以写成：
 
 $$
-\text{action\_id}
+\mathrm{action\_id}
 =
 \Bigl(\bigl(i_{fsd}\times 4 + i_{pd}\bigr)\times 4 + i_{pu}\Bigr)\times 2 + i_{sf}
 $$
@@ -88,7 +88,7 @@ $$
 ```mermaid
 flowchart LR
     A[输入状态: FPS 负载 功耗 频率]:::input --> B[离散动作编码器]:::process
-    B --> C[输出 action_id]:::output
+    B --> C[输出：动作编号]:::output
     A --> D[连续策略网络]:::process
     D --> E[输出连续残差]:::output
     E --> F[投影到合法参数集合]:::process
@@ -112,7 +112,7 @@ flowchart LR
 $$
 \{fsd:10,\ pd:90,\ pu:85,\ sf:0\}
 \Longleftrightarrow
-\text{action\_id}=72
+\mathrm{action\_id}=72
 $$
 
 我们把中间过程完整算一遍。
@@ -127,7 +127,7 @@ $$
 第二步，代入编码公式：
 
 $$
-\text{action\_id}
+\mathrm{action\_id}
 =
 \Bigl(\bigl(2\times 4 + 1\bigr)\times 4 + 0\Bigr)\times 2 + 0
 $$
@@ -165,7 +165,7 @@ $$
 所以结果确实是：
 
 $$
-\text{action\_id}=72
+\mathrm{action\_id}=72
 $$
 
 现在换成连续残差控制。假设我们把 `action_id=72` 对应的参数当成基础动作：
@@ -319,7 +319,7 @@ flowchart TD
 下面做一个能手算的 TD3 例子。为了贴近当前项目，我们仍然沿用源文档里的奖励设计：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 假设当前一个时间窗口里的观测是：
@@ -334,19 +334,19 @@ $$
 因为 `FPS >= 59`，所以：
 
 $$
-\text{fps\_component}=20
+\mathrm{fps\_component}=20
 $$
 
 频率项：
 
 $$
-\text{freq\_component}=\frac{900-430}{80}=\frac{470}{80}=5.875
+\mathrm{freq\_component}=\frac{900-430}{80}=\frac{470}{80}=5.875
 $$
 
 功耗项：
 
 $$
-\text{power\_component}=\frac{6000-3200}{400}=\frac{2800}{400}=7
+\mathrm{power\_component}=\frac{6000-3200}{400}=\frac{2800}{400}=7
 $$
 
 所以总奖励是：
@@ -584,19 +584,19 @@ flowchart TD
 因为 `FPS >= 59`，所以：
 
 $$
-\text{fps\_component}=20
+\mathrm{fps\_component}=20
 $$
 
 频率项：
 
 $$
-\text{freq\_component}=\frac{900-450}{80}=\frac{450}{80}=5.625
+\mathrm{freq\_component}=\frac{900-450}{80}=\frac{450}{80}=5.625
 $$
 
 功耗项：
 
 $$
-\text{power\_component}=\frac{6000-3500}{400}=\frac{2500}{400}=6.25
+\mathrm{power\_component}=\frac{6000-3500}{400}=\frac{2500}{400}=6.25
 $$
 
 总奖励：

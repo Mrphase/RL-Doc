@@ -896,12 +896,12 @@ $$
 s_t =
 [
 \text{fps}_t,\
-\text{gpu\_freq}_t,\
-\text{gpu\_usage}_t,\
+\mathrm{gpu\_freq}_t,\
+\mathrm{gpu\_usage}_t,\
 \text{power}_t,\
 \text{lateness}_t,\
-\text{actual\_dur}_t,\
-\text{fence\_latency}_t
+\mathrm{actual\_dur}_t,\
+\mathrm{fence\_latency}_t
 ]
 $$
 
@@ -915,24 +915,24 @@ $$
 
 $$
 a_t =
-(\text{first\_step\_down},\ \text{penalty\_down},\ \text{penalty\_up},\ \text{strict\_frame})
+(\mathrm{first\_step\_down},\ \mathrm{penalty\_down},\ \mathrm{penalty\_up},\ \mathrm{strict\_frame})
 $$
 
 奖励继续沿用源分析文档里的统一版本：
 
 $$
-\text{reward} =
-\text{fps\_component}
+\mathrm{reward} =
+\mathrm{fps\_component}
 +
-\text{freq\_component}
+\mathrm{freq\_component}
 +
-\text{power\_component}
+\mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - \text{fps}), & \text{fps} < 57 \\
 -2 \times (59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -941,11 +941,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - \text{gpu\_freq}_{mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - \text{power}_{mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 > 补充知识：为什么离线 RL 老是要写成 $(s,a,r,s')$？
@@ -960,12 +960,12 @@ $$
 
 ```mermaid
 flowchart TD
-    A["输入: 当前窗口状态 s_t"] --> B["处理: 执行动作 action_id"]
-    B --> C["处理: 观察下一窗口状态 s_t+1"]
-    C --> D["处理: 根据 FPS 频率 功耗计算奖励 r_t"]
-    D --> E["处理: 用 V(s_t+1) 构造 Q 目标"]
-    E --> F["处理: 更新 Q(s_t,a_t)"]
-    F --> G["处理: 用 Q-V 更新当前状态基线 V(s_t)"]
+    A["输入: 当前窗口状态"] --> B["处理: 执行动作"]
+    B --> C["处理: 观察下一窗口状态"]
+    C --> D["处理: 根据 FPS 频率 功耗计算奖励"]
+    D --> E["处理: 用 V(下一状态) 构造 Q 目标"]
+    E --> F["处理: 更新 Q(当前状态,当前动作)"]
+    F --> G["处理: 用 Q-V 更新当前状态基线 V(当前状态)"]
     G --> H["处理: 根据优势大小更新策略"]
     H --> I["输出: 得到更偏向高优势动作的策略"]
 
@@ -1001,7 +1001,7 @@ flowchart TD
 此时执行动作：
 
 $$
-a_t = (\text{first\_step\_down}=10,\ \text{penalty\_down}=95,\ \text{penalty\_up}=90,\ \text{strict\_frame}=1)
+a_t = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=95,\ \mathrm{penalty\_up}=90,\ \mathrm{strict\_frame}=1)
 $$
 
 把它看作某个离散动作：
@@ -1029,19 +1029,19 @@ $$
 所以：
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 频率项：
 
 $$
-\text{freq\_component} = \frac{900 - 525}{80} = \frac{375}{80} = 4.6875
+\mathrm{freq\_component} = \frac{900 - 525}{80} = \frac{375}{80} = 4.6875
 $$
 
 功耗项：
 
 $$
-\text{power\_component} = \frac{6000 - 3900}{400} = \frac{2100}{400} = 5.25
+\mathrm{power\_component} = \frac{6000 - 3900}{400} = \frac{2100}{400} = 5.25
 $$
 
 总奖励：

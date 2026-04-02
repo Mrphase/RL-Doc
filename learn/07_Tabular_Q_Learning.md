@@ -89,7 +89,7 @@ flowchart LR
     P1[输入：4 个 DCVS 参数取值] --> I[处理：查每个参数的档位索引]
     I --> W[处理：乘上各自权重]
     W --> S[处理：把 4 项结果相加]
-    S --> AID[输出：得到 action_id]
+    S --> AID[输出：得到 动作编号]
     AID --> QT[输出：对应到 Q 表的一列]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
@@ -106,7 +106,7 @@ flowchart LR
 我们直接拿源文档里反复出现的 `action_id = 72` 做一次完整手算。假设动作是：
 
 $$
-(\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+(\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 先查索引：
@@ -130,13 +130,13 @@ $$
 这一章里的奖励函数沿用源文档给出的思路：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\mathrm{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - fps), & fps < 57 \\
 -2 \times (59 - fps), & 57 \le fps < 59 \\
@@ -145,11 +145,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - gpu\_freq\_{mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - power\_{mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 这个奖励设计很符合 DCVS 直觉：先保住帧率，再奖励低频和低功耗。
@@ -221,7 +221,7 @@ flowchart TD
 假设当前状态下，你选中了一个具体动作：
 
 $$
-a = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+a = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 接下来 3 个决策窗口观测到的数据分别是：
@@ -237,15 +237,15 @@ $$
 第 1 个窗口：
 
 $$
-\text{fps\_component} = -2 \times (59 - 58.8) = -2 \times 0.2 = -0.4
+\mathrm{fps\_component} = -2 \times (59 - 58.8) = -2 \times 0.2 = -0.4
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
+\mathrm{freq\_component} = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
+\mathrm{power\_component} = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
 $$
 
 $$
@@ -255,15 +255,15 @@ $$
 第 2 个窗口：
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
+\mathrm{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 3600}{400} = \frac{2400}{400} = 6
+\mathrm{power\_component} = \frac{6000 - 3600}{400} = \frac{2400}{400} = 6
 $$
 
 $$
@@ -273,15 +273,15 @@ $$
 第 3 个窗口：
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
+\mathrm{freq\_component} = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 3200}{400} = \frac{2800}{400} = 7
+\mathrm{power\_component} = \frac{6000 - 3200}{400} = \frac{2800}{400} = 7
 $$
 
 $$
@@ -360,15 +360,15 @@ $$
 
 ```mermaid
 flowchart TD
-    S[输入：当前状态 s_t] --> Q0[处理：查旧分数 Q_old]
-    A[输入：当前动作 a_t] --> Q0
-    R[输入：观测奖励 r_t+1] --> T[处理：计算目标值]
-    SN[输入：下一状态 s_t+1] --> M[处理：查下一状态最大 Q]
+    S[输入：当前状态] --> Q0[处理：查旧分数 旧 Q 值]
+    A[输入：当前动作] --> Q0
+    R[输入：观测奖励 下一步奖励] --> T[处理：计算目标值]
+    SN[输入：下一状态] --> M[处理：查下一状态最大 Q]
     M --> T
     Q0 --> D[处理：算差值 δ]
     T --> D
     D --> U[处理：乘上学习率 α 做修正]
-    U --> Q1[输出：写回新分数 Q_new]
+    U --> Q1[输出：写回新分数 新 Q 值]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
     classDef process fill:#fed7aa,stroke:#ea580c,color:#111827;
@@ -392,7 +392,7 @@ flowchart TD
 本轮采取动作：
 
 $$
-a_t = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+a_t = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 并且已经知道：
@@ -412,15 +412,15 @@ $$
 因为 $59.3 \ge 59$，所以：
 
 $$
-\text{fps\_component}=20
+\mathrm{fps\_component}=20
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
+\mathrm{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 3600}{400} = \frac{2400}{400} = 6
+\mathrm{power\_component} = \frac{6000 - 3600}{400} = \frac{2400}{400} = 6
 $$
 
 $$
@@ -521,8 +521,8 @@ flowchart LR
     B1 --> C[处理：组合成离散状态]
     B2 --> C
     B3 --> C
-    C --> ID[输出：得到 state_id]
-    ID --> Q[输出：按 state_id 查 Q 表]
+    C --> ID[输出：得到 状态编号]
+    ID --> Q[输出：按 状态编号 查 Q 表]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
     classDef process fill:#fed7aa,stroke:#ea580c,color:#111827;
@@ -662,11 +662,11 @@ $$
 
 ```mermaid
 flowchart TD
-    S[输入：当前状态 s_t] --> P[处理：生成 0 到 1 的随机数]
+    S[输入：当前状态] --> P[处理：生成 0 到 1 的随机数]
     P --> C{处理：是否小于 ε}
     C -->|是| R[处理：随机选动作]
     C -->|否| G[处理：选 Q 值最大的动作]
-    R --> A[输出：执行动作 a_t]
+    R --> A[输出：执行动作 当前动作]
     G --> A
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;

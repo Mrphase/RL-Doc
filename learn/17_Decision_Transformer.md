@@ -123,7 +123,7 @@ flowchart TD
     B --> C["处理: 拼接历史动作序列"]
     C --> D["处理: 按 RTG 状态 动作 的顺序排成 token 序列"]
     D --> E["处理: Transformer 读取整段上下文"]
-    E --> F["输出: 预测下一个 action_id 概率"]
+    E --> F["输出: 预测下一个动作概率"]
     F --> G["输出: 选择 192 个离散动作中的一个"]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
@@ -155,13 +155,13 @@ flowchart TD
 我们沿用源分析文档里给过的一套奖励写法：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\mathrm{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - \text{fps}), & \text{fps} < 57 \\
 -2 \times (59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -170,11 +170,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 假设有 3 个连续窗口：
@@ -190,19 +190,19 @@ $$
 第 1 步，FPS 没到 `59`，但也没掉到 `57` 以下，所以用中间那段公式：
 
 $$
-\text{fps\_component}_1 = -2 \times (59 - 58.2) = -2 \times 0.8 = -1.6
+\mathrm{fps\_component}_1 = -2 \times (59 - 58.2) = -2 \times 0.8 = -1.6
 $$
 
 频率项：
 
 $$
-\text{freq\_component}_1 = \frac{900 - 710}{80} = \frac{190}{80} = 2.375
+\mathrm{freq\_component}_1 = \frac{900 - 710}{80} = \frac{190}{80} = 2.375
 $$
 
 功耗项：
 
 $$
-\text{power\_component}_1 = \frac{6000 - 5800}{400} = \frac{200}{400} = 0.5
+\mathrm{power\_component}_1 = \frac{6000 - 5800}{400} = \frac{200}{400} = 0.5
 $$
 
 总奖励：
@@ -214,19 +214,19 @@ $$
 再算第 2 步。第 2 步 FPS 已经达标，所以：
 
 $$
-\text{fps\_component}_2 = 20
+\mathrm{fps\_component}_2 = 20
 $$
 
 频率项：
 
 $$
-\text{freq\_component}_2 = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
+\mathrm{freq\_component}_2 = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
 $$
 
 功耗项：
 
 $$
-\text{power\_component}_2 = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
+\mathrm{power\_component}_2 = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
 $$
 
 总奖励：
@@ -238,15 +238,15 @@ $$
 再算第 3 步。
 
 $$
-\text{fps\_component}_3 = 20
+\mathrm{fps\_component}_3 = 20
 $$
 
 $$
-\text{freq\_component}_3 = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
+\mathrm{freq\_component}_3 = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
 $$
 
 $$
-\text{power\_component}_3 = \frac{6000 - 3000}{400} = \frac{3000}{400} = 7.5
+\mathrm{power\_component}_3 = \frac{6000 - 3000}{400} = \frac{3000}{400} = 7.5
 $$
 
 $$
@@ -323,7 +323,7 @@ $$
 ```mermaid
 flowchart TD
     A["输入: 初始目标回报 70"] --> B["处理: 读取当前状态和历史动作"]
-    B --> C["处理: Transformer 预测下一步 action_id"]
+    B --> C["处理: Transformer 预测下一步动作编号"]
     C --> D["输出: 执行动作并观察即时奖励"]
     D --> E["处理: 用 目标回报减去当前奖励"]
     E --> F["输出: 得到下一步新的目标回报"]
@@ -442,7 +442,7 @@ flowchart LR
     B --> C["处理: softmax 变成注意力权重"]
     C --> D["处理: 对历史信息加权汇总"]
     D --> E["输出: 当前最该关注的历史摘要"]
-    E --> F["输出: 帮助预测下一个 action_id"]
+    E --> F["输出: 帮助预测下一个动作"]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
     classDef process fill:#fed7aa,stroke:#ea580c,color:#111827;

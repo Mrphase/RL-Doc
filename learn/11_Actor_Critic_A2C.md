@@ -73,13 +73,13 @@ $$
 先用项目里已经出现过的奖励思路举个最简单的例子：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - fps), & fps < 57 \\
 -2 \times (59 - fps), & 57 \le fps < 59 \\
@@ -88,11 +88,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - gpu\_freq\_{mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - power\_{mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 假设当前一个 5 秒窗口里：
@@ -106,19 +106,19 @@ $$
 1. 先算帧率项。因为 $57 \le 58.6 < 59$，所以
 
 $$
-\text{fps\_component} = -2 \times (59 - 58.6) = -2 \times 0.4 = -0.8
+\mathrm{fps\_component} = -2 \times (59 - 58.6) = -2 \times 0.4 = -0.8
 $$
 
 2. 再算频率项：
 
 $$
-\text{freq\_component} = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
+\mathrm{freq\_component} = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
 $$
 
 3. 再算功耗项：
 
 $$
-\text{power\_component} = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
+\mathrm{power\_component} = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
 $$
 
 4. 最后相加：
@@ -219,7 +219,7 @@ flowchart TD
     B --> D["输出：选中一个 DCVS 动作"]
     D --> E["处理：执行 1 个控制窗口"]
     E --> F["输入：拿到奖励和下一状态"]
-    C --> G["处理：计算优势 A_t"]
+    C --> G["处理：计算优势值"]
     F --> G
     G --> H["处理：更新演员"]
     G --> I["处理：更新评论员"]
@@ -421,15 +421,15 @@ $$
 
 ```mermaid
 flowchart LR
-    A["输入：窗口 t 的状态"] --> B["处理：执行动作 a_t"]
-    B --> C["输入：得到奖励 r_t"]
+    A["输入：窗口 t 的状态"] --> B["处理：执行动作 当前动作"]
+    B --> C["输入：得到奖励 当前奖励"]
     C --> D["处理：继续滚动到 t+1"]
-    D --> E["输入：得到奖励 r_{t+1}"]
+    D --> E["输入：得到下一步奖励"]
     E --> F["处理：继续滚动到 t+2"]
-    F --> G["输入：得到奖励 r_{t+2}"]
+    F --> G["输入：得到下下步奖励"]
     G --> H["处理：用评论员估计尾部价值"]
-    H --> I["输出：得到三步回报 R_t^(3)"]
-    I --> J["处理：算优势 A_t"]
+    H --> I["输出：得到三步回报 多步回报^(3)"]
+    I --> J["处理：算优势值"]
     J --> K["处理：更新演员和评论员"]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
@@ -463,19 +463,19 @@ flowchart LR
 1. 因为 $fps = 59.4 \ge 59$，所以
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 2. 频率项：
 
 $$
-\text{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
+\mathrm{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
 $$
 
 3. 功耗项：
 
 $$
-\text{power\_component} = \frac{6000 - 3500}{400} = \frac{2500}{400} = 6.25
+\mathrm{power\_component} = \frac{6000 - 3500}{400} = \frac{2500}{400} = 6.25
 $$
 
 4. 所以：
@@ -489,19 +489,19 @@ $$
 1. 因为 $fps = 60.1 \ge 59$，所以
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 2. 频率项：
 
 $$
-\text{freq\_component} = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
+\mathrm{freq\_component} = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
 $$
 
 3. 功耗项：
 
 $$
-\text{power\_component} = \frac{6000 - 3000}{400} = \frac{3000}{400} = 7.5
+\mathrm{power\_component} = \frac{6000 - 3000}{400} = \frac{3000}{400} = 7.5
 $$
 
 4. 所以：
