@@ -2,14 +2,15 @@
 
 ## 前置阅读
 
-- 无硬性前置，本文可以独立阅读。
-- 如果你已经了解 GPU DCVS 的 192 个离散动作、FPS 目标是 59-60、GPU 频率范围是 282-710 MHz，读起来会更顺。
+- 建议先读 `02_RL_Core_Concepts.md`，先把状态、动作、奖励、回报这些基本词吃透。
+- 建议再读 `03_Exploration_vs_Exploitation.md`、`04_Multi_Armed_Bandits.md`、`05_Contextual_Bandits.md` 和 `06_Safe_Contextual_Bandit.md`，这样你更容易看懂“为什么表格 Q 学习是很好学的起点，但不是当前项目最推荐的生产方案”。
+- 本文仍然可以独立阅读；文中会默认你知道项目目标是 `FPS 59-60`、GPU 频率范围是 `282-710 MHz`、动作空间总共有 `192` 个离散动作。
 
 ## 为什么这一章先讲它
 
 表格 Q 学习可以先把它想成一张“经验评分表”。你每试过一次参数组合，就把这次体验记在表里。下次再遇到差不多的场景，就直接翻表，看以前哪个动作更靠谱。
 
-它为什么值得先学？因为它是最容易讲清楚、最容易手算、也最容易和工程直觉对上的强化学习（Reinforcement Learning）方法之一。项目源文档里也明确提到，当前运行时控制器里已经有在线表格 Q 学习基线。
+它为什么值得先学？因为它是最容易讲清楚、最容易手算、也最容易和工程直觉对上的强化学习（Reinforcement Learning）方法之一。项目源文档里也明确提到，当前运行时控制器里已经有在线表格 Q 学习基线（Baseline）。
 
 但你也要一开始就知道它的边界：
 
@@ -55,6 +56,76 @@
 $$
 |\mathcal{A}| = 6 \times 4 \times 4 \times 2 = 192
 $$
+
+为了把这 192 个动作真正放进 Q 表的列里，我们通常还会给每组参数再编一个动作编号（Action ID）。一个很常见、而且和项目样例日志能对上的编码方式，是先给每个参数值分配档位索引：
+
+| 参数 | 实际取值 | 档位索引 |
+| --- | --- | --- |
+| `first_step_down` | 3、5、10、15、20、25 | 0、1、2、3、4、5 |
+| `penalty_down` | 85、90、95、98 | 0、1、2、3 |
+| `penalty_up` | 85、90、95、98 | 0、1、2、3 |
+| `strict_frame` | 0、1 | 0、1 |
+
+于是动作编号可以写成：
+
+$$
+action\_id = i_{fsd} \times (4 \times 4 \times 2) + i_{pd} \times (4 \times 2) + i_{pu} \times 2 + i_{sf}
+$$
+
+也就是：
+
+$$
+action\_id = i_{fsd} \times 32 + i_{pd} \times 8 + i_{pu} \times 2 + i_{sf}
+$$
+
+> 补充知识：这里可以把它理解成“多层抽屉编号”。
+>
+> `first_step_down` 是最大层，所以它每往前走一格，后面那 3 个参数的所有组合都要整体跳过去。因为后面还有 `4 \times 4 \times 2 = 32` 种组合，所以它的权重就是 32。`penalty_down` 后面还剩 `4 \times 2 = 8` 种组合，所以它的权重就是 8。这个思路和十位、个位有点像，只不过这里不是十进制，而是按每一维剩余组合数在“进位”。
+
+这张图展示了“4 个 DCVS 参数是怎么一步步压成一个 `action_id` 的”。
+
+```mermaid
+flowchart LR
+    P1[输入：4 个 DCVS 参数取值] --> I[处理：查每个参数的档位索引]
+    I --> W[处理：乘上各自权重]
+    W --> S[处理：把 4 项结果相加]
+    S --> AID[输出：得到 action_id]
+    AID --> QT[输出：对应到 Q 表的一列]
+
+    classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
+    classDef process fill:#fed7aa,stroke:#ea580c,color:#111827;
+    classDef output fill:#bbf7d0,stroke:#16a34a,color:#111827;
+
+    class P1 input;
+    class I,W,S process;
+    class AID,QT output;
+```
+
+图里的关键路径很简单：先把每个参数转成档位索引，再按“后面还剩多少种组合”分配权重，最后相加得到一个唯一编号。这样 Q 表里第 `72` 列、第 `103` 列到底对应哪组 DCVS 参数，就都能说清楚了。
+
+我们直接拿源文档里反复出现的 `action_id = 72` 做一次完整手算。假设动作是：
+
+$$
+(\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+$$
+
+先查索引：
+
+$$
+i_{fsd} = 2,\quad i_{pd} = 1,\quad i_{pu} = 0,\quad i_{sf} = 0
+$$
+
+再代入公式：
+
+$$
+action\_id = 2 \times 32 + 1 \times 8 + 0 \times 2 + 0
+$$
+
+$$
+action\_id = 64 + 8 + 0 + 0 = 72
+$$
+
+这也解释了为什么综合决策文档会特别提到“某份样例 CSV 里只有单一动作 `72`”：它对应的就是这组 `fsd10 / pd90 / pu85 / sf0` 参数。如果一整个数据文件里始终只看到这一列动作，那表格 Q 学习当然就很难真正比较“这个状态下到底是 72 更好，还是别的动作更好”。
 
 这一章里的奖励函数沿用源文档给出的思路：
 
