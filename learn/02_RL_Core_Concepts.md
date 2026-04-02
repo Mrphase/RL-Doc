@@ -311,11 +311,11 @@ $$
 
 ```mermaid
 flowchart TD
-    I1[first_step_down 6 个取值] --> P[按固定顺序编码]
-    I2[penalty_down 4 个取值] --> P
-    I3[penalty_up 4 个取值] --> P
-    I4[strict_frame 2 个取值] --> P
-    P --> O[得到一个 action_id]
+    I1[首次降频步长 6 个取值] --> P[按固定顺序编码]
+    I2[降频惩罚阈值 4 个取值] --> P
+    I3[升频惩罚阈值 4 个取值] --> P
+    I4[严格帧率开关 2 个取值] --> P
+    P --> O[得到一个动作编号]
 
     classDef input fill:#dbeafe,stroke:#1d4ed8,color:#111827;
     classDef process fill:#fed7aa,stroke:#c2410c,color:#111827;
@@ -634,7 +634,7 @@ flowchart LR
     I1[第 t 轮奖励] --> P[按折扣系数加权求和]
     I2[第 t+1 轮奖励] --> P
     I3[第 t+2 轮奖励] --> P
-    P --> O[得到回报 G_t]
+    P --> O[得到累计回报]
 
     classDef input fill:#dbeafe,stroke:#1d4ed8,color:#111827;
     classDef process fill:#fed7aa,stroke:#c2410c,color:#111827;
@@ -1051,9 +1051,9 @@ $$
 
 ```mermaid
 flowchart TD
-    I[当前状态 s_t] --> P1[计算每个动作的 Q 值]
+    I[当前状态] --> P1[计算每个动作的 Q 值]
     P1 --> P2[按策略比较或分配概率]
-    P2 --> P3[选出一个 action_id]
+    P2 --> P3[选出一个动作编号]
     P3 --> O[写入 4 个 DCVS 参数]
 
     classDef input fill:#dbeafe,stroke:#1d4ed8,color:#111827;

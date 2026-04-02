@@ -88,7 +88,7 @@ $$
 ```mermaid
 flowchart LR
     A[输入状态: FPS 负载 功耗 频率]:::input --> B[离散动作编码器]:::process
-    B --> C[输出 action_id]:::output
+    B --> C[输出：动作编号]:::output
     A --> D[连续策略网络]:::process
     D --> E[输出连续残差]:::output
     E --> F[投影到合法参数集合]:::process

@@ -123,7 +123,7 @@ flowchart TD
     B --> C["处理: 拼接历史动作序列"]
     C --> D["处理: 按 RTG 状态 动作 的顺序排成 token 序列"]
     D --> E["处理: Transformer 读取整段上下文"]
-    E --> F["输出: 预测下一个 action_id 概率"]
+    E --> F["输出: 预测下一个动作概率"]
     F --> G["输出: 选择 192 个离散动作中的一个"]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
@@ -323,7 +323,7 @@ $$
 ```mermaid
 flowchart TD
     A["输入: 初始目标回报 70"] --> B["处理: 读取当前状态和历史动作"]
-    B --> C["处理: Transformer 预测下一步 action_id"]
+    B --> C["处理: Transformer 预测下一步动作编号"]
     C --> D["输出: 执行动作并观察即时奖励"]
     D --> E["处理: 用 目标回报减去当前奖励"]
     E --> F["输出: 得到下一步新的目标回报"]
@@ -442,7 +442,7 @@ flowchart LR
     B --> C["处理: softmax 变成注意力权重"]
     C --> D["处理: 对历史信息加权汇总"]
     D --> E["输出: 当前最该关注的历史摘要"]
-    E --> F["输出: 帮助预测下一个 action_id"]
+    E --> F["输出: 帮助预测下一个动作"]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
     classDef process fill:#fed7aa,stroke:#ea580c,color:#111827;

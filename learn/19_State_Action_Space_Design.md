@@ -157,7 +157,7 @@ flowchart TD
     B --> C["处理：按量纲做归一化"]
     C --> D["处理：计算短历史趋势，例如 Δfps 和 Δpower"]
     D --> E["处理：补入上一个动作和上一个奖励"]
-    E --> F["输出：拼成状态向量 s_t"]
+    E --> F["输出：拼成状态向量 当前状态"]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
     classDef process fill:#fed7aa,stroke:#ea580c,color:#111827;
@@ -423,10 +423,10 @@ $$
 
 ```mermaid
 flowchart TD
-    A["输入：first_step_down 的 6 个档位"] --> E["处理：把 4 个参数做组合"]
-    B["输入：penalty_down 的 4 个档位"] --> E
-    C["输入：penalty_up 的 4 个档位"] --> E
-    D["输入：strict_frame 的 2 个档位"] --> E
+    A["输入：首次降频步长 的 6 个档位"] --> E["处理：把 4 个参数做组合"]
+    B["输入：降频惩罚阈值 的 4 个档位"] --> E
+    C["输入：升频惩罚阈值 的 4 个档位"] --> E
+    D["输入：严格帧率开关 的 2 个档位"] --> E
     E --> F["输出：得到 192 个离散动作"]
     F --> G["处理：结合当前状态做安全过滤"]
     G --> H["输出：得到当前可选安全动作子集"]

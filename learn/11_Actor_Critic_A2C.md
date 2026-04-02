@@ -88,11 +88,11 @@ $$
 $$
 
 $$
-\mathrm{freq\_component} = \frac{900 - gpu\_freq\_{mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\mathrm{power\_component} = \frac{6000 - power\_{mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 假设当前一个 5 秒窗口里：
@@ -219,7 +219,7 @@ flowchart TD
     B --> D["输出：选中一个 DCVS 动作"]
     D --> E["处理：执行 1 个控制窗口"]
     E --> F["输入：拿到奖励和下一状态"]
-    C --> G["处理：计算优势 A_t"]
+    C --> G["处理：计算优势值"]
     F --> G
     G --> H["处理：更新演员"]
     G --> I["处理：更新评论员"]
@@ -421,15 +421,15 @@ $$
 
 ```mermaid
 flowchart LR
-    A["输入：窗口 t 的状态"] --> B["处理：执行动作 a_t"]
-    B --> C["输入：得到奖励 r_t"]
+    A["输入：窗口 t 的状态"] --> B["处理：执行动作 当前动作"]
+    B --> C["输入：得到奖励 当前奖励"]
     C --> D["处理：继续滚动到 t+1"]
     D --> E["输入：得到奖励 r_{t+1}"]
     E --> F["处理：继续滚动到 t+2"]
     F --> G["输入：得到奖励 r_{t+2}"]
     G --> H["处理：用评论员估计尾部价值"]
-    H --> I["输出：得到三步回报 R_t^(3)"]
-    I --> J["处理：算优势 A_t"]
+    H --> I["输出：得到三步回报 多步回报^(3)"]
+    I --> J["处理：算优势值"]
     J --> K["处理：更新演员和评论员"]
 
     classDef input fill:#dbeafe,stroke:#2563eb,color:#111827;
