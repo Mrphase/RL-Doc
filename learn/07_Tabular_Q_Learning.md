@@ -130,13 +130,13 @@ $$
 这一章里的奖励函数沿用源文档给出的思路：
 
 $$
-\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
+\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
 $$
 
 其中：
 
 $$
-\mathrm{fps\_component} =
+\text{fps\_component} =
 \begin{cases}
 -10 \times (57 - fps), & fps < 57 \\
 -2 \times (59 - fps), & 57 \le fps < 59 \\
@@ -145,11 +145,11 @@ $$
 $$
 
 $$
-\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
+\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
+\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
 $$
 
 这个奖励设计很符合 DCVS 直觉：先保住帧率，再奖励低频和低功耗。

@@ -922,17 +922,17 @@ $$
 
 $$
 \text{reward} =
-\mathrm{fps\_component}
+\text{fps\_component}
 +
-\mathrm{freq\_component}
+\text{freq\_component}
 +
-\mathrm{power\_component}
+\text{power\_component}
 $$
 
 其中：
 
 $$
-\mathrm{fps\_component} =
+\text{fps\_component} =
 \begin{cases}
 -10 \times (57 - \text{fps}), & \text{fps} < 57 \\
 -2 \times (59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -941,11 +941,11 @@ $$
 $$
 
 $$
-\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq}_{mhz}}{80}
+\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\mathrm{power\_component} = \frac{6000 - \text{power}_{mw}}{400}
+\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
 $$
 
 > 补充知识：为什么离线 RL 老是要写成 $(s,a,r,s')$？

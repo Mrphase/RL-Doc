@@ -289,7 +289,7 @@ $$
 如果要把动作编码成一个整数 `action_id`，常见写法是：
 
 $$
-\mathrm{action\_id} = i_f \times 32 + i_d \times 8 + i_u \times 2 + i_s
+\text{action\_id} = i_f \times 32 + i_d \times 8 + i_u \times 2 + i_s
 $$
 
 其中：

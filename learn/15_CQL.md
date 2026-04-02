@@ -127,13 +127,13 @@ $$
 现在用分析文档里推荐的奖励函数来算 $r_t$：
 
 $$
-\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
+\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
 $$
 
 其中：
 
 $$
-\mathrm{fps\_component} =
+\text{fps\_component} =
 \begin{cases}
 -10 \times (57 - \text{fps}), & \text{fps} < 57 \\
 -2 \times (59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -142,11 +142,11 @@ $$
 $$
 
 $$
-\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
+\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
+\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
 $$
 
 逐步代入：
@@ -536,13 +536,13 @@ $$
 源分析文档里推荐的奖励函数是：
 
 $$
-\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
+\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
 $$
 
 其中：
 
 $$
-\mathrm{fps\_component} =
+\text{fps\_component} =
 \begin{cases}
 -10 \times (57 - \text{fps}), & \text{fps} < 57 \\
 -2 \times (59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -551,11 +551,11 @@ $$
 $$
 
 $$
-\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
+\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
+\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
 $$
 
 > **补充知识：分段函数（Piecewise Function）不用怕**
