@@ -403,7 +403,7 @@ $$
 所以：
 
 $$
-\mathrm{strict\_frame} = 0
+\text{strict\_frame} = 0
 $$
 
 最终，`action_id = 72` 对应的动作组合是：

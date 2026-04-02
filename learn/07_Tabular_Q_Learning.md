@@ -106,7 +106,7 @@ flowchart LR
 我们直接拿源文档里反复出现的 `action_id = 72` 做一次完整手算。假设动作是：
 
 $$
-(\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
+(\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
 $$
 
 先查索引：
@@ -221,7 +221,7 @@ flowchart TD
 假设当前状态下，你选中了一个具体动作：
 
 $$
-a = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
+a = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
 $$
 
 接下来 3 个决策窗口观测到的数据分别是：
@@ -392,7 +392,7 @@ flowchart TD
 本轮采取动作：
 
 $$
-a_t = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
+a_t = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
 $$
 
 并且已经知道：

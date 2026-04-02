@@ -112,7 +112,7 @@ flowchart TD
 此时控制器选择了一个 DCVS 动作：
 
 $$
-a_t = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
+a_t = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
 $$
 
 动作生效后，下一个窗口变成：
@@ -440,25 +440,25 @@ $$
 这个项目里的动作由 4 个可调参数组成：
 
 $$
-a_t = (\mathrm{first\_step\_down},\ \mathrm{penalty\_down},\ \mathrm{penalty\_up},\ \mathrm{strict\_frame})
+a_t = (\text{first\_step\_down},\ \text{penalty\_down},\ \text{penalty\_up},\ \text{strict\_frame})
 $$
 
 它们的取值集合分别是：
 
 $$
-\mathrm{first\_step\_down} \in \{3, 5, 10, 15, 20, 25\}
+\text{first\_step\_down} \in \{3, 5, 10, 15, 20, 25\}
 $$
 
 $$
-\mathrm{penalty\_down} \in \{85, 90, 95, 98\}
+\text{penalty\_down} \in \{85, 90, 95, 98\}
 $$
 
 $$
-\mathrm{penalty\_up} \in \{85, 90, 95, 98\}
+\text{penalty\_up} \in \{85, 90, 95, 98\}
 $$
 
 $$
-\mathrm{strict\_frame} \in \{0, 1\}
+\text{strict\_frame} \in \{0, 1\}
 $$
 
 所以总动作数是：

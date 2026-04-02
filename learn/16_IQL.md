@@ -915,7 +915,7 @@ $$
 
 $$
 a_t =
-(\mathrm{first\_step\_down},\ \mathrm{penalty\_down},\ \mathrm{penalty\_up},\ \mathrm{strict\_frame})
+(\text{first\_step\_down},\ \text{penalty\_down},\ \text{penalty\_up},\ \text{strict\_frame})
 $$
 
 奖励继续沿用源分析文档里的统一版本：
@@ -1001,7 +1001,7 @@ flowchart TD
 此时执行动作：
 
 $$
-a_t = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=95,\ \mathrm{penalty\_up}=90,\ \mathrm{strict\_frame}=1)
+a_t = (\text{first\_step\_down}=10,\ \text{penalty\_down}=95,\ \text{penalty\_up}=90,\ \text{strict\_frame}=1)
 $$
 
 把它看作某个离散动作：
