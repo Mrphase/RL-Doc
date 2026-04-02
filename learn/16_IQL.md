@@ -915,24 +915,24 @@ $$
 
 $$
 a_t =
-(\text{first\_step\_down},\ \text{penalty\_down},\ \text{penalty\_up},\ \text{strict\_frame})
+(\mathrm{first\_step\_down},\ \mathrm{penalty\_down},\ \mathrm{penalty\_up},\ \mathrm{strict\_frame})
 $$
 
 奖励继续沿用源分析文档里的统一版本：
 
 $$
-\text{reward} =
-\text{fps\_component}
+\mathrm{reward} =
+\mathrm{fps\_component}
 +
-\text{freq\_component}
+\mathrm{freq\_component}
 +
-\text{power\_component}
+\mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - \text{fps}), & \text{fps} < 57 \\
 -2 \times (59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -941,11 +941,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 > 补充知识：为什么离线 RL 老是要写成 $(s,a,r,s')$？
@@ -1001,7 +1001,7 @@ flowchart TD
 此时执行动作：
 
 $$
-a_t = (\text{first\_step\_down}=10,\ \text{penalty\_down}=95,\ \text{penalty\_up}=90,\ \text{strict\_frame}=1)
+a_t = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=95,\ \mathrm{penalty\_up}=90,\ \mathrm{strict\_frame}=1)
 $$
 
 把它看作某个离散动作：

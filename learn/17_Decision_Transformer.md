@@ -155,13 +155,13 @@ flowchart TD
 我们沿用源分析文档里给过的一套奖励写法：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\mathrm{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - \text{fps}), & \text{fps} < 57 \\
 -2 \times (59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -170,11 +170,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 假设有 3 个连续窗口：

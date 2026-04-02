@@ -106,7 +106,7 @@ flowchart LR
 我们直接拿源文档里反复出现的 `action_id = 72` 做一次完整手算。假设动作是：
 
 $$
-(\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+(\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 先查索引：
@@ -130,13 +130,13 @@ $$
 这一章里的奖励函数沿用源文档给出的思路：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\mathrm{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - fps), & fps < 57 \\
 -2 \times (59 - fps), & 57 \le fps < 59 \\
@@ -145,11 +145,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 这个奖励设计很符合 DCVS 直觉：先保住帧率，再奖励低频和低功耗。
@@ -221,7 +221,7 @@ flowchart TD
 假设当前状态下，你选中了一个具体动作：
 
 $$
-a = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+a = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 接下来 3 个决策窗口观测到的数据分别是：
@@ -392,7 +392,7 @@ flowchart TD
 本轮采取动作：
 
 $$
-a_t = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+a_t = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 并且已经知道：
