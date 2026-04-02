@@ -433,53 +433,53 @@ flowchart LR
 1. 当前 FPS 相对 60 的归一化值：
 
 $$
-\text{fps\_norm} = \frac{58.4}{60}
+\mathrm{fps\_norm} = \frac{58.4}{60}
 $$
 
 $$
-\text{fps\_norm} = 0.9733
+\mathrm{fps\_norm} = 0.9733
 $$
 
 2. 距离目标 60 FPS 的误差：
 
 $$
-\text{fps\_error\_norm} = \frac{60 - 58.4}{60}
+\mathrm{fps\_error\_norm} = \frac{60 - 58.4}{60}
 $$
 
 $$
-\text{fps\_error\_norm} = \frac{1.6}{60} = 0.0267
+\mathrm{fps\_error\_norm} = \frac{1.6}{60} = 0.0267
 $$
 
 3. GPU 利用率归一化：
 
 $$
-\text{gpu\_usage\_norm} = \frac{86}{100} = 0.86
+\mathrm{gpu\_usage\_norm} = \frac{86}{100} = 0.86
 $$
 
 4. GPU 频率按 282 到 710 MHz 做最小值-最大值缩放：
 
 $$
-\text{gpu\_freq\_norm} = \frac{430 - 282}{710 - 282}
+\mathrm{gpu\_freq\_norm} = \frac{430 - 282}{710 - 282}
 $$
 
 $$
-\text{gpu\_freq\_norm} = \frac{148}{428} \approx 0.3458
+\mathrm{gpu\_freq\_norm} = \frac{148}{428} \approx 0.3458
 $$
 
 5. GPU 功耗按 0 到 8000 mW 归一化：
 
 $$
-\text{gpu\_power\_norm} = \frac{3200}{8000} = 0.4
+\mathrm{gpu\_power\_norm} = \frac{3200}{8000} = 0.4
 $$
 
 6. 如果动作编号按 0 到 191 编码，那么上一个动作的归一化值是：
 
 $$
-\text{prev\_action\_norm} = \frac{72}{191}
+\mathrm{prev\_action\_norm} = \frac{72}{191}
 $$
 
 $$
-\text{prev\_action\_norm} \approx 0.3770
+\mathrm{prev\_action\_norm} \approx 0.3770
 $$
 
 所以，这一帧送进网络的输入向量，前几个维度可以写成：
@@ -791,13 +791,13 @@ $$
 源文档给出的推荐奖励形式是：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - fps), & fps < 57 \\
 -2 \times (59 - fps), & 57 \le fps < 59 \\
@@ -806,11 +806,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 现在代入当前数值。
@@ -818,31 +818,31 @@ $$
 因为 $fps = 58.4$，落在 $57 \le fps < 59$ 这段，所以：
 
 $$
-\text{fps\_component} = -2 \times (59 - 58.4)
+\mathrm{fps\_component} = -2 \times (59 - 58.4)
 $$
 
 $$
-\text{fps\_component} = -2 \times 0.6 = -1.2
+\mathrm{fps\_component} = -2 \times 0.6 = -1.2
 $$
 
 GPU 频率是 430 MHz，所以：
 
 $$
-\text{freq\_component} = \frac{900 - 430}{80}
+\mathrm{freq\_component} = \frac{900 - 430}{80}
 $$
 
 $$
-\text{freq\_component} = \frac{470}{80} = 5.875
+\mathrm{freq\_component} = \frac{470}{80} = 5.875
 $$
 
 GPU 功耗是 3200 mW，所以：
 
 $$
-\text{power\_component} = \frac{6000 - 3200}{400}
+\mathrm{power\_component} = \frac{6000 - 3200}{400}
 $$
 
 $$
-\text{power\_component} = \frac{2800}{400} = 7
+\mathrm{power\_component} = \frac{2800}{400} = 7
 $$
 
 最终奖励：

@@ -106,7 +106,7 @@ flowchart LR
 我们直接拿源文档里反复出现的 `action_id = 72` 做一次完整手算。假设动作是：
 
 $$
-(\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+(\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 先查索引：
@@ -130,13 +130,13 @@ $$
 这一章里的奖励函数沿用源文档给出的思路：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - fps), & fps < 57 \\
 -2 \times (59 - fps), & 57 \le fps < 59 \\
@@ -145,11 +145,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - gpu\_freq\_{mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - gpu\_freq\_{mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - power\_{mw}}{400}
+\mathrm{power\_component} = \frac{6000 - power\_{mw}}{400}
 $$
 
 这个奖励设计很符合 DCVS 直觉：先保住帧率，再奖励低频和低功耗。
@@ -221,7 +221,7 @@ flowchart TD
 假设当前状态下，你选中了一个具体动作：
 
 $$
-a = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+a = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 接下来 3 个决策窗口观测到的数据分别是：
@@ -237,15 +237,15 @@ $$
 第 1 个窗口：
 
 $$
-\text{fps\_component} = -2 \times (59 - 58.8) = -2 \times 0.2 = -0.4
+\mathrm{fps\_component} = -2 \times (59 - 58.8) = -2 \times 0.2 = -0.4
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
+\mathrm{freq\_component} = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
+\mathrm{power\_component} = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
 $$
 
 $$
@@ -255,15 +255,15 @@ $$
 第 2 个窗口：
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
+\mathrm{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 3600}{400} = \frac{2400}{400} = 6
+\mathrm{power\_component} = \frac{6000 - 3600}{400} = \frac{2400}{400} = 6
 $$
 
 $$
@@ -273,15 +273,15 @@ $$
 第 3 个窗口：
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
+\mathrm{freq\_component} = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 3200}{400} = \frac{2800}{400} = 7
+\mathrm{power\_component} = \frac{6000 - 3200}{400} = \frac{2800}{400} = 7
 $$
 
 $$
@@ -392,7 +392,7 @@ flowchart TD
 本轮采取动作：
 
 $$
-a_t = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+a_t = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 并且已经知道：
@@ -412,15 +412,15 @@ $$
 因为 $59.3 \ge 59$，所以：
 
 $$
-\text{fps\_component}=20
+\mathrm{fps\_component}=20
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
+\mathrm{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 3600}{400} = \frac{2400}{400} = 6
+\mathrm{power\_component} = \frac{6000 - 3600}{400} = \frac{2400}{400} = 6
 $$
 
 $$

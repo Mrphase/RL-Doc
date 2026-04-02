@@ -698,7 +698,7 @@ $$
 这里的 $x_t$ 表示第 $t$ 轮看到的上下文。比如在 GPU DCVS 里，可以把下面这些量放进去：
 
 $$
-x_t = [\text{gpu\_usage\_pct},\ \text{gpu\_power\_mw},\ \text{actual\_dur\_ms},\ \text{lateness\_ms},\ \text{fence\_avg\_latency\_ms},\ \text{gpu\_freq},\ \text{最近 1 到 3 个窗口统计}]
+x_t = [\mathrm{gpu\_usage\_pct},\ \mathrm{gpu\_power\_mw},\ \mathrm{actual\_dur\_ms},\ \mathrm{lateness\_ms},\ \mathrm{fence\_avg\_latency\_ms},\ \mathrm{gpu\_freq},\ \text{最近 1 到 3 个窗口统计}]
 $$
 
 这几个字段不是随便编出来的，它们正好对应源文档里已经明确能采到、也已经被拿来讨论建模的运行时特征。换句话说，朴素老虎机一旦想升级成“更懂当前场景”的版本，第一步通常不是换更花哨的算法，而是先把这些上下文信号接进来。

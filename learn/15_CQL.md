@@ -112,7 +112,7 @@ flowchart TD
 此时控制器选择了一个 DCVS 动作：
 
 $$
-a_t = (\text{first\_step\_down}=10,\ \text{penalty\_down}=90,\ \text{penalty\_up}=85,\ \text{strict\_frame}=0)
+a_t = (\mathrm{first\_step\_down}=10,\ \mathrm{penalty\_down}=90,\ \mathrm{penalty\_up}=85,\ \mathrm{strict\_frame}=0)
 $$
 
 动作生效后，下一个窗口变成：
@@ -127,13 +127,13 @@ $$
 现在用分析文档里推荐的奖励函数来算 $r_t$：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - \text{fps}), & \text{fps} < 57 \\
 -2 \times (59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -142,11 +142,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 逐步代入：
@@ -154,19 +154,19 @@ $$
 1. 因为 FPS 是 $58.7$，落在 $57 \le \text{fps} < 59$ 这一段，所以
 
 $$
-\text{fps\_component} = -2 \times (59 - 58.7) = -2 \times 0.3 = -0.6
+\mathrm{fps\_component} = -2 \times (59 - 58.7) = -2 \times 0.3 = -0.6
 $$
 
 1. 频率项：
 
 $$
-\text{freq\_component} = \frac{900 - 525}{80} = \frac{375}{80} = 4.6875
+\mathrm{freq\_component} = \frac{900 - 525}{80} = \frac{375}{80} = 4.6875
 $$
 
 1. 功耗项：
 
 $$
-\text{power\_component} = \frac{6000 - 4700}{400} = \frac{1300}{400} = 3.25
+\mathrm{power\_component} = \frac{6000 - 4700}{400} = \frac{1300}{400} = 3.25
 $$
 
 1. 总奖励：
@@ -335,15 +335,15 @@ $$
 s_t =
 \left[
 \text{fps},
-\text{gpu\_freq},
-\text{gpu\_usage},
-\text{gpu\_power},
+\mathrm{gpu\_freq},
+\mathrm{gpu\_usage},
+\mathrm{gpu\_power},
 \text{lateness},
-\text{fence\_avg\_latency},
-\text{gpu\_headroom},
-\text{cpu\_freq},
-\text{cpu\_usage},
-\text{delta\_total\_uj},
+\mathrm{fence\_avg\_latency},
+\mathrm{gpu\_headroom},
+\mathrm{cpu\_freq},
+\mathrm{cpu\_usage},
+\mathrm{delta\_total\_uj},
 \ldots
 \right]
 $$
@@ -398,25 +398,25 @@ flowchart TD
 1. GPU 频率归一化：
 
 $$
-\text{gpu\_freq\_norm} = \frac{587 - 282}{710 - 282} = \frac{305}{428} \approx 0.7126
+\mathrm{gpu\_freq\_norm} = \frac{587 - 282}{710 - 282} = \frac{305}{428} \approx 0.7126
 $$
 
 1. GPU 利用率归一化：
 
 $$
-\text{gpu\_usage\_norm} = \frac{92}{100} = 0.92
+\mathrm{gpu\_usage\_norm} = \frac{92}{100} = 0.92
 $$
 
 1. GPU 功耗归一化：
 
 $$
-\text{gpu\_power\_norm} = \frac{5200}{8000} = 0.65
+\mathrm{gpu\_power\_norm} = \frac{5200}{8000} = 0.65
 $$
 
 1. FPS 比例化：
 
 $$
-\text{fps\_norm} = \frac{58.4}{60} \approx 0.9733
+\mathrm{fps\_norm} = \frac{58.4}{60} \approx 0.9733
 $$
 
 如果这里只取 4 个示意特征，那么一个简化后的状态向量可以写成：
@@ -440,25 +440,25 @@ $$
 这个项目里的动作由 4 个可调参数组成：
 
 $$
-a_t = (\text{first\_step\_down},\ \text{penalty\_down},\ \text{penalty\_up},\ \text{strict\_frame})
+a_t = (\mathrm{first\_step\_down},\ \mathrm{penalty\_down},\ \mathrm{penalty\_up},\ \mathrm{strict\_frame})
 $$
 
 它们的取值集合分别是：
 
 $$
-\text{first\_step\_down} \in \{3, 5, 10, 15, 20, 25\}
+\mathrm{first\_step\_down} \in \{3, 5, 10, 15, 20, 25\}
 $$
 
 $$
-\text{penalty\_down} \in \{85, 90, 95, 98\}
+\mathrm{penalty\_down} \in \{85, 90, 95, 98\}
 $$
 
 $$
-\text{penalty\_up} \in \{85, 90, 95, 98\}
+\mathrm{penalty\_up} \in \{85, 90, 95, 98\}
 $$
 
 $$
-\text{strict\_frame} \in \{0, 1\}
+\mathrm{strict\_frame} \in \{0, 1\}
 $$
 
 所以总动作数是：
@@ -536,13 +536,13 @@ $$
 源分析文档里推荐的奖励函数是：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - \text{fps}), & \text{fps} < 57 \\
 -2 \times (59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -551,11 +551,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 > **补充知识：分段函数（Piecewise Function）不用怕**
@@ -602,15 +602,15 @@ flowchart TD
 逐步计算：
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 625}{80} = \frac{275}{80} = 3.4375
+\mathrm{freq\_component} = \frac{900 - 625}{80} = \frac{275}{80} = 3.4375
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 5400}{400} = \frac{600}{400} = 1.5
+\mathrm{power\_component} = \frac{6000 - 5400}{400} = \frac{600}{400} = 1.5
 $$
 
 $$
@@ -626,15 +626,15 @@ $$
 逐步计算：
 
 $$
-\text{fps\_component} = -10 \times (57 - 56.5) = -10 \times 0.5 = -5
+\mathrm{fps\_component} = -10 \times (57 - 56.5) = -10 \times 0.5 = -5
 $$
 
 $$
-\text{freq\_component} = \frac{900 - 450}{80} = \frac{450}{80} = 5.625
+\mathrm{freq\_component} = \frac{900 - 450}{80} = \frac{450}{80} = 5.625
 $$
 
 $$
-\text{power\_component} = \frac{6000 - 3200}{400} = \frac{2800}{400} = 7
+\mathrm{power\_component} = \frac{6000 - 3200}{400} = \frac{2800}{400} = 7
 $$
 
 $$

@@ -300,17 +300,17 @@ flowchart TD
 $$
 \text{reward}
 =
-\text{fps\_component}
+\mathrm{fps\_component}
 +
-\text{freq\_component}
+\mathrm{freq\_component}
 +
-\text{power\_component}
+\mathrm{power\_component}
 $$
 
 其中
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10(57 - \text{fps}), & \text{fps} < 57 \\
 -2(59 - \text{fps}), & 57 \le \text{fps} < 59 \\
@@ -319,11 +319,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - \text{power\_mw}}{400}
+\mathrm{power\_component} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 现在一步一步算。
@@ -333,13 +333,13 @@ $$
 1. 因为预测 FPS 是 `59.6`，所以
 
 $$
-\text{fps\_component}_{72} = 20
+\mathrm{fps\_component}_{72} = 20
 $$
 
 2. 频率项：
 
 $$
-\text{freq\_component}_{72}
+\mathrm{freq\_component}_{72}
 =
 \frac{900 - 525}{80}
 =
@@ -351,7 +351,7 @@ $$
 3. 功耗项：
 
 $$
-\text{power\_component}_{72}
+\mathrm{power\_component}_{72}
 =
 \frac{6000 - 4800}{400}
 =
@@ -375,13 +375,13 @@ $$
 1. 因为预测 FPS 是 `59.1`，所以
 
 $$
-\text{fps\_component}_{88} = 20
+\mathrm{fps\_component}_{88} = 20
 $$
 
 2. 频率项：
 
 $$
-\text{freq\_component}_{88}
+\mathrm{freq\_component}_{88}
 =
 \frac{900 - 465}{80}
 =
@@ -393,7 +393,7 @@ $$
 3. 功耗项：
 
 $$
-\text{power\_component}_{88}
+\mathrm{power\_component}_{88}
 =
 \frac{6000 - 4300}{400}
 =

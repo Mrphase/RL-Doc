@@ -73,13 +73,13 @@ $$
 先用项目里已经出现过的奖励思路举个最简单的例子：
 
 $$
-\text{reward} = \text{fps\_component} + \text{freq\_component} + \text{power\_component}
+\text{reward} = \mathrm{fps\_component} + \mathrm{freq\_component} + \mathrm{power\_component}
 $$
 
 其中：
 
 $$
-\text{fps\_component} =
+\mathrm{fps\_component} =
 \begin{cases}
 -10 \times (57 - fps), & fps < 57 \\
 -2 \times (59 - fps), & 57 \le fps < 59 \\
@@ -88,11 +88,11 @@ $$
 $$
 
 $$
-\text{freq\_component} = \frac{900 - gpu\_freq\_{mhz}}{80}
+\mathrm{freq\_component} = \frac{900 - gpu\_freq\_{mhz}}{80}
 $$
 
 $$
-\text{power\_component} = \frac{6000 - power\_{mw}}{400}
+\mathrm{power\_component} = \frac{6000 - power\_{mw}}{400}
 $$
 
 假设当前一个 5 秒窗口里：
@@ -106,19 +106,19 @@ $$
 1. 先算帧率项。因为 $57 \le 58.6 < 59$，所以
 
 $$
-\text{fps\_component} = -2 \times (59 - 58.6) = -2 \times 0.4 = -0.8
+\mathrm{fps\_component} = -2 \times (59 - 58.6) = -2 \times 0.4 = -0.8
 $$
 
 2. 再算频率项：
 
 $$
-\text{freq\_component} = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
+\mathrm{freq\_component} = \frac{900 - 587}{80} = \frac{313}{80} = 3.9125
 $$
 
 3. 再算功耗项：
 
 $$
-\text{power\_component} = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
+\mathrm{power\_component} = \frac{6000 - 4200}{400} = \frac{1800}{400} = 4.5
 $$
 
 4. 最后相加：
@@ -463,19 +463,19 @@ flowchart LR
 1. 因为 $fps = 59.4 \ge 59$，所以
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 2. 频率项：
 
 $$
-\text{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
+\mathrm{freq\_component} = \frac{900 - 490}{80} = \frac{410}{80} = 5.125
 $$
 
 3. 功耗项：
 
 $$
-\text{power\_component} = \frac{6000 - 3500}{400} = \frac{2500}{400} = 6.25
+\mathrm{power\_component} = \frac{6000 - 3500}{400} = \frac{2500}{400} = 6.25
 $$
 
 4. 所以：
@@ -489,19 +489,19 @@ $$
 1. 因为 $fps = 60.1 \ge 59$，所以
 
 $$
-\text{fps\_component} = 20
+\mathrm{fps\_component} = 20
 $$
 
 2. 频率项：
 
 $$
-\text{freq\_component} = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
+\mathrm{freq\_component} = \frac{900 - 430}{80} = \frac{470}{80} = 5.875
 $$
 
 3. 功耗项：
 
 $$
-\text{power\_component} = \frac{6000 - 3000}{400} = \frac{3000}{400} = 7.5
+\mathrm{power\_component} = \frac{6000 - 3000}{400} = \frac{3000}{400} = 7.5
 $$
 
 4. 所以：

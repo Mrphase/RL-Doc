@@ -289,7 +289,7 @@ $$
 如果要把动作编码成一个整数 `action_id`，常见写法是：
 
 $$
-\text{action\_id} = i_f \times 32 + i_d \times 8 + i_u \times 2 + i_s
+\mathrm{action\_id} = i_f \times 32 + i_d \times 8 + i_u \times 2 + i_s
 $$
 
 其中：
@@ -403,7 +403,7 @@ $$
 所以：
 
 $$
-\text{strict\_frame} = 0
+\mathrm{strict\_frame} = 0
 $$
 
 最终，`action_id = 72` 对应的动作组合是：

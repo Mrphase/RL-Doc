@@ -285,11 +285,11 @@ r_{\text{fps}} =
 $$
 
 $$
-r_{\text{freq}} = \frac{900 - \text{gpu\_freq\_mhz}}{80}
+r_{\text{freq}} = \frac{900 - \mathrm{gpu\_freq\_mhz}}{80}
 $$
 
 $$
-r_{\text{power}} = \frac{6000 - \text{power\_mw}}{400}
+r_{\text{power}} = \frac{6000 - \mathrm{power\_mw}}{400}
 $$
 
 假设 3 个连续决策窗口的数据如下：

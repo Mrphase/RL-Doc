@@ -258,15 +258,15 @@ $$
 其中：
 
 $$
-u_t = \frac{\text{gpu\_usage\_pct}_t}{100}
+u_t = \frac{\mathrm{gpu\_usage\_pct}_t}{100}
 $$
 
 $$
-l_t = \frac{\min(\max(\text{lateness\_ms}_t, 0), 5)}{5}
+l_t = \frac{\min(\max(\mathrm{lateness\_ms}_t, 0), 5)}{5}
 $$
 
 $$
-f_t = \frac{\text{gpu\_freq\_mhz}_t - 282}{710 - 282}
+f_t = \frac{\mathrm{gpu\_freq\_mhz}_t - 282}{710 - 282}
 $$
 
 然后把最近两个窗口、上一动作和驻留时间一起拼起来：
